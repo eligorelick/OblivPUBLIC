@@ -125,13 +125,17 @@ export class WebLLMService {
     this.loadingStatus = 'Initializing model...';
     onProgress?.(this.loadingProgress, this.loadingStatus);
 
+    // Detect if we're on iOS (WebGPU may not be available)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
     try {
       // Create the engine with privacy-focused configuration
-      this.loadingStatus = 'Creating ML engine...';
+      this.loadingStatus = isIOS ? 'Initializing WebGL engine...' : 'Creating ML engine...';
       onProgress?.(5, this.loadingStatus);
 
       // Initialize with real-time progress tracking
-      this.engine = new webllm.MLCEngine({
+      // Force WebGL on iOS since WebGPU is not available yet
+      const engineConfig: any = {
         initProgressCallback: (report: any) => {
           // Update progress in real-time
           if (report.progress !== undefined && report.progress !== null) {
@@ -140,8 +144,9 @@ export class WebLLMService {
             this.loadingProgress = progressPercent;
 
             // Dynamic status messages based on progress
+            const gpuType = isIOS ? 'GPU' : 'WebGPU';
             if (progressPercent < 5) {
-              this.loadingStatus = 'Initializing WebGPU...';
+              this.loadingStatus = `Initializing ${gpuType}...`;
             } else if (progressPercent < 15) {
               this.loadingStatus = 'Checking model cache...';
             } else if (progressPercent < 25) {
@@ -151,7 +156,7 @@ export class WebLLMService {
             } else if (progressPercent < 55) {
               this.loadingStatus = 'Loading model into memory...';
             } else if (progressPercent < 70) {
-              this.loadingStatus = 'Compiling WebGPU shaders...';
+              this.loadingStatus = `Compiling ${gpuType} shaders...`;
             } else if (progressPercent < 85) {
               this.loadingStatus = 'Optimizing for your device...';
             } else if (progressPercent < 95) {
@@ -175,7 +180,16 @@ export class WebLLMService {
             onProgress?.(this.loadingProgress, this.loadingStatus);
           }
         }
-      });
+      };
+
+      // Force WebGL backend on iOS devices (WebGPU not supported yet)
+      // This prevents the "WebGPU not available" error on iPhones/iPads
+      if (isIOS) {
+        engineConfig.logLevel = 'INFO';
+        // WebLLM will automatically fall back to WebGL if WebGPU is not available
+      }
+
+      this.engine = new webllm.MLCEngine(engineConfig);
 
       this.loadingStatus = 'Starting model download...';
       onProgress?.(10, this.loadingStatus);
@@ -198,11 +212,16 @@ export class WebLLMService {
       let userFriendlyMessage = errorMessage;
 
       if (errorMessage.toLowerCase().includes('webgpu') || errorMessage.toLowerCase().includes('gpu')) {
-        userFriendlyMessage = 'WebGPU not available. Your browser or device may not support GPU acceleration. Try Chrome/Edge or a different device.';
+        // Special message for iOS devices
+        if (isIOS) {
+          userFriendlyMessage = 'This model requires more resources than available on your iPhone/iPad. Please try a smaller model from the Tiny or Small category. iOS devices work best with Qwen2 0.5B or Llama 3.2 1B.';
+        } else {
+          userFriendlyMessage = 'GPU acceleration not available. Your browser or device may not support it. Try Chrome/Edge on desktop, or select a smaller model.';
+        }
       } else if (errorMessage.toLowerCase().includes('network') || errorMessage.toLowerCase().includes('fetch') || errorMessage.toLowerCase().includes('download')) {
         userFriendlyMessage = 'Network error while downloading model. Check your internet connection and try again.';
-      } else if (errorMessage.toLowerCase().includes('memory') || errorMessage.toLowerCase().includes('oom')) {
-        userFriendlyMessage = 'Out of memory. This model is too large for your device. Please select a smaller model.';
+      } else if (errorMessage.toLowerCase().includes('memory') || errorMessage.toLowerCase().includes('oom') || errorMessage.toLowerCase().includes('out of memory')) {
+        userFriendlyMessage = 'Out of memory. This model is too large for your device. Please select a smaller model from the Tiny category.';
       } else if (errorMessage.toLowerCase().includes('abort') || errorMessage.toLowerCase().includes('cancel')) {
         userFriendlyMessage = 'Model loading was cancelled.';
       }

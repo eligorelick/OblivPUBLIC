@@ -144,8 +144,12 @@ export function detectDeviceInfo(): DeviceInfo {
 
 // Detect best available backend for AI inference
 async function detectBackend(): Promise<'webgpu' | 'webgl' | 'wasm'> {
+  // Special handling for iOS - WebGPU is experimental
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
   // 1. Try WebGPU (best performance, newest)
-  if ('gpu' in navigator) {
+  // Note: iOS 17+ supports WebGPU but it may be experimental
+  if ('gpu' in navigator && !isIOS) {
     try {
       const adapter = await (navigator as any).gpu.requestAdapter();
       if (adapter) {
@@ -157,6 +161,7 @@ async function detectBackend(): Promise<'webgpu' | 'webgl' | 'wasm'> {
   }
 
   // 2. Try WebGL (good performance, wider compatibility)
+  // This is the most reliable option for iOS devices
   try {
     const canvas = document.createElement('canvas');
     const gl = canvas.getContext('webgl2') || canvas.getContext('webgl') ||

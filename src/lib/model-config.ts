@@ -159,6 +159,49 @@ export function getAllModelsSorted(): ModelConfig[] {
   });
 }
 
+// Filter models based on device capabilities
+export function getModelsForDevice(deviceMemory: number, isMobile: boolean): ModelConfig[] {
+  return Object.values(MODELS).filter(model => {
+    // Mobile devices (iOS/Android) - be conservative
+    if (isMobile) {
+      // iOS Safari and mobile browsers have strict memory limits (~2-3GB for web apps)
+      // Even if device has 8GB, we can't use it all
+      if (deviceMemory <= 4) {
+        // Low-end phones: Only tiny models
+        return model.category === 'tiny';
+      } else if (deviceMemory <= 8) {
+        // Mid to high-end phones (iPhone 15 Pro Max, Galaxy S24): Tiny + Small
+        return model.category === 'tiny' || model.category === 'small';
+      } else {
+        // Tablets with lots of RAM: Tiny + Small + some Medium
+        return model.category === 'tiny' || model.category === 'small' ||
+               (model.category === 'medium' && model.requirements.ram <= 6);
+      }
+    }
+
+    // Desktop - show all models that fit in available RAM
+    return model.requirements.ram <= deviceMemory;
+  });
+}
+
+// Check if a specific model is compatible with device
+export function isModelCompatible(model: ModelConfig, deviceMemory: number, isMobile: boolean): boolean {
+  if (isMobile) {
+    // Mobile-specific limits
+    if (deviceMemory <= 4) {
+      return model.category === 'tiny';
+    } else if (deviceMemory <= 8) {
+      return model.category === 'tiny' || model.category === 'small';
+    } else {
+      return model.category === 'tiny' || model.category === 'small' ||
+             (model.category === 'medium' && model.requirements.ram <= 6);
+    }
+  }
+
+  // Desktop compatibility
+  return model.requirements.ram <= deviceMemory;
+}
+
 // Legacy compatibility - map old keys to new models
 export const MODEL_ALIASES: Record<string, string> = {
   'tiny': 'qwen2_0_5b',
