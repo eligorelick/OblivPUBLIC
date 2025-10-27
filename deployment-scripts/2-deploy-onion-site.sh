@@ -86,7 +86,7 @@ check_prerequisites() {
     fi
 
     # Find generated keys
-    ONION_DIR=$(find "$KEYSDIR" -type d -mindepth 1 -maxdepth 1 | head -n 1)
+    ONION_DIR=$(find "$KEYSDIR" -mindepth 1 -maxdepth 1 -type d | head -n 1)
 
     if [ -z "$ONION_DIR" ]; then
         print_error "No .onion address directories found in $KEYSDIR"
@@ -158,10 +158,11 @@ configure_tor() {
     sudo mkdir -p "$TORDIR"
 
     print_info "Copying your vanity .onion keys..."
-    sudo cp -r "$ONION_DIR"/* "$TORDIR/"
+    sudo cp -r "$ONION_DIR"/* "$TORDIR/" 2>/dev/null || true
     sudo chown -R debian-tor:debian-tor "$TORDIR"
     sudo chmod 700 "$TORDIR"
-    sudo chmod 600 "$TORDIR"/*
+    # Use find to chmod files only if they exist
+    sudo find "$TORDIR" -type f -exec chmod 600 {} \; 2>/dev/null || true
 
     print_info "Configuring torrc..."
 
