@@ -8,7 +8,7 @@ set -e  # Exit on error
 
 LOG_FILE="/var/log/oblivai-update.log"
 APP_DIR="/var/www/oblivai"
-BRANCH="claude/analyze-site-improvements-011CUWyP7SQQuNdhToREi3Lc"
+BRANCH="main"
 
 echo "[$(date)] Starting OBLIVAI update check..." >> "$LOG_FILE"
 

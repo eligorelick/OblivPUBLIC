@@ -61,10 +61,10 @@ sudo chown -R $USER:$USER /var/www/oblivai
 
 # Clone repository
 cd /var/www/oblivai
-git clone https://github.com/eligorelick/Obliv_source.git .
+git clone https://github.com/eligorelick/OblivPUBLIC.git .
 
-# Checkout the latest branch
-git checkout claude/analyze-site-improvements-011CUWyP7SQQuNdhToREi3Lc
+# Ensure you're on the main branch
+git checkout main
 ```
 
 ### Step 3: Build OBLIVAI
@@ -226,7 +226,7 @@ set -e  # Exit on error
 
 LOG_FILE="/var/log/oblivai-update.log"
 APP_DIR="/var/www/oblivai"
-BRANCH="claude/analyze-site-improvements-011CUWyP7SQQuNdhToREi3Lc"
+BRANCH="main"
 
 echo "[$(date)] Starting OBLIVAI update check..." >> "$LOG_FILE"
 
@@ -467,7 +467,7 @@ If you absolutely must use Tails, here's how to make it work:
 3. **Clone Repository to Persistent Storage**
    ```bash
    cd ~/Persistent
-   git clone https://github.com/eligorelick/Obliv_source.git oblivai
+   git clone https://github.com/eligorelick/OblivPUBLIC.git oblivai
    cd oblivai
    npm install
    npm run build
@@ -507,7 +507,7 @@ If you absolutely must use Tails, here's how to make it work:
 6. **Manual Update Process** (no auto-update on Tails)
    ```bash
    cd ~/Persistent/oblivai
-   git pull origin claude/analyze-site-improvements-011CUWyP7SQQuNdhToREi3Lc
+   git pull origin main
    npm install
    npm run build
    sudo systemctl reload nginx
@@ -619,7 +619,7 @@ git branch -a
 
 # Force reset to remote (WARNING: loses local changes)
 git fetch origin
-git reset --hard origin/claude/analyze-site-improvements-011CUWyP7SQQuNdhToREi3Lc
+git reset --hard origin/main
 ```
 
 ---
