@@ -34,7 +34,7 @@ export default defineConfig({
       'Cross-Origin-Resource-Policy': 'cross-origin',
       'Content-Security-Policy': "default-src 'self'; " +
         "base-uri 'self'; " +
-        "script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline'; " +
+        "script-src 'self' 'wasm-unsafe-eval'; " +
         "worker-src 'self' blob:; " +
         "connect-src 'self' https://huggingface.co https://cdn-lfs.huggingface.co https://*.huggingface.co https://*.xethub.hf.co https://raw.githubusercontent.com https://*.githubusercontent.com; " +
         "img-src 'self' data: blob:; " +
@@ -43,7 +43,8 @@ export default defineConfig({
         "form-action 'none'; " +
         "object-src 'none'; " +
         "media-src 'self'; " +
-        "manifest-src 'self';",
+        "manifest-src 'self'; " +
+        "frame-ancestors 'none';",
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY',
       'X-XSS-Protection': '1; mode=block',
