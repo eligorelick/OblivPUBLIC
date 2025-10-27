@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Cpu, Zap, AlertCircle, Check, Loader2 } from 'lucide-react';
-import { getModelsByCategory } from '../lib/model-config';
+import { Cpu, Zap, AlertCircle, Check, Loader2, Smartphone } from 'lucide-react';
+import { getModelsByCategory, isModelCompatible } from '../lib/model-config';
 import type { ModelConfig } from '../lib/model-config';
 import { detectHardware } from '../lib/hardware-detect';
 import type { HardwareInfo } from '../lib/hardware-detect';
@@ -35,11 +35,19 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   const getModelStatus = (model: ModelConfig) => {
     if (!hardware) return 'checking';
 
+    // Check if model is compatible with device (considers mobile limits)
+    const isMobile = hardware.deviceInfo.type === 'mobile' || hardware.deviceInfo.type === 'tablet';
+    const isCompatible = isModelCompatible(model, hardware.memory, isMobile);
+
+    if (!isCompatible) {
+      return 'insufficient';
+    }
+
     if (hardware.memory < model.requirements.ram) {
       return 'insufficient';
     }
 
-    if (model.requirements.gpu === 'required' && !hardware.hasWebGPU) {
+    if (model.requirements.gpu === 'required' && !hardware.hasWebGPU && hardware.backend === 'wasm') {
       return 'insufficient';
     }
 
@@ -105,6 +113,22 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         <p className="text-sm sm:text-base text-gray-400">Select a model based on your device capabilities</p>
       </div>
 
+      {/* Mobile User Notice */}
+      {hardware && (hardware.deviceInfo.type === 'mobile' || hardware.deviceInfo.type === 'tablet') && (
+        <div className="glass rounded-xl p-4 mb-6 border-blue-500/50 bg-blue-500/10">
+          <div className="flex items-start gap-3">
+            <Smartphone className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-gray-300">
+              <p className="font-semibold mb-1 text-blue-300">Mobile Device Detected</p>
+              <p>
+                Showing only models that work on your {hardware.deviceInfo.os === 'ios' ? 'iPhone/iPad' : 'device'}.
+                Larger models are hidden as they require desktop hardware. Best models for you: <span className="text-white font-medium">Qwen2 0.5B, Llama 3.2 1B, Qwen2 1.5B, Gemma 2B</span>.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hardware Info */}
       {hardware && (
         <div className="glass rounded-xl p-4 sm:p-5 mb-6 sm:mb-8">
@@ -161,6 +185,15 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
           const categoryModels = getModelsByCategory(category as ModelConfig['category']);
           if (categoryModels.length === 0) return null;
 
+          // On mobile, hide categories with no compatible models
+          const isMobile = hardware?.deviceInfo.type === 'mobile' || hardware?.deviceInfo.type === 'tablet';
+          const hasCompatibleModels = categoryModels.some(model => {
+            if (!hardware) return true;
+            return isModelCompatible(model, hardware.memory, isMobile);
+          });
+
+          if (isMobile && !hasCompatibleModels) return null;
+
           const categoryNames = {
             tiny: 'Tiny (500MB-1GB) - Ultra-fast, all devices',
             small: 'Small (1-2GB) - Fast, most devices',
@@ -181,6 +214,10 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                   const isSelected = selectedModel?.id === model.id;
                   const isDisabled = status === 'insufficient' || isLoading;
 
+                  // On mobile, hide incompatible models entirely (cleaner UX)
+                  const isMobile = hardware?.deviceInfo.type === 'mobile' || hardware?.deviceInfo.type === 'tablet';
+                  if (isMobile && status === 'insufficient') return null;
+
                   return (
                     <button
                       key={`${category}-${idx}`}
@@ -196,7 +233,15 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <h4 className="text-base sm:text-lg font-semibold text-white">{model.name}</h4>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-base sm:text-lg font-semibold text-white">{model.name}</h4>
+                            {/* Show mobile badge for compatible models on small screens */}
+                            {(model.category === 'tiny' || model.category === 'small') && hardware?.deviceInfo.type === 'mobile' && (
+                              <span title="Works great on mobile">
+                                <Smartphone className="h-3 w-3 text-green-400" />
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-gray-400 mt-1">{model.size}</p>
                         </div>
                         {isSelected && <Check className="h-4 w-4 text-primary flex-shrink-0 ml-2" />}
