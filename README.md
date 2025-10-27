@@ -353,8 +353,11 @@ Generate a custom .onion address starting with "OblivAi" on Qubes Whonix:
 git clone https://github.com/eligorelick/OblivPUBLIC.git ~/oblivai
 cd ~/oblivai
 
-# Generate vanity .onion starting with "oblivai"
-bash deployment-scripts/generate-vanity-onion.sh oblivai
+# STEP 1: Generate vanity .onion (may take hours)
+bash deployment-scripts/1-generate-vanity-onion.sh oblivai
+
+# STEP 2: Deploy site (after generation completes)
+bash deployment-scripts/2-deploy-onion-site.sh
 ```
 
 See [WHONIX_SETUP.md](WHONIX_SETUP.md) for complete Whonix deployment guide.

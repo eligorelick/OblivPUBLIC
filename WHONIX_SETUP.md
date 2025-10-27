@@ -10,24 +10,106 @@ Complete guide for generating a vanity .onion address starting with "OblivAi" an
 - 10GB free disk space
 - Tor Browser for testing
 
-### One-Command Setup
+### Two-Step Setup (Recommended)
+
+The setup is split into two scripts because vanity generation can take hours:
+
+**STEP 1: Generate vanity .onion address** (may take 4-24 hours for "oblivai")
 
 ```bash
 # Clone repository
 git clone https://github.com/eligorelick/OblivPUBLIC.git ~/oblivai
 cd ~/oblivai
 
-# Run vanity address generator (generates address starting with "oblivai")
+# Generate vanity address (can run overnight)
+bash deployment-scripts/1-generate-vanity-onion.sh oblivai
+```
+
+**STEP 2: Deploy the site** (takes ~5 minutes)
+
+```bash
+# After generation completes, deploy the site
+bash deployment-scripts/2-deploy-onion-site.sh
+```
+
+**That's it!** Your .onion site will be live.
+
+### Alternative: All-in-One Setup
+
+If you want everything automated in one script:
+
+```bash
+# This does BOTH generation and deployment
 bash deployment-scripts/generate-vanity-onion.sh oblivai
 ```
 
-**That's it!** The script will:
-- ✅ Install all dependencies (mkp224o, Tor, nginx, Node.js)
-- ✅ Generate vanity .onion address starting with "oblivai"
-- ✅ Configure Tor hidden service
-- ✅ Build OBLIVAI from source
-- ✅ Configure nginx web server
-- ✅ Display your .onion address
+Note: This will block for hours during generation.
+
+---
+
+## 📜 Understanding the Scripts
+
+### Why Two Scripts?
+
+**Script 1: `1-generate-vanity-onion.sh`**
+- ONLY generates the vanity .onion address
+- Can take **4-24 hours** for a 7-character prefix like "oblivai"
+- You can run this overnight
+- You can stop and restart it (press Ctrl+C to stop)
+- Keys are saved to `~/oblivai-onion-keys/`
+
+**Script 2: `2-deploy-onion-site.sh`**
+- Takes the generated keys and deploys your site
+- Only takes **~5 minutes**
+- Installs Tor, nginx, builds OBLIVAI
+- Configures everything automatically
+- Your .onion site goes live
+
+### What Each Script Does
+
+#### Script 1: Generation
+```
+┌─────────────────────────────────────┐
+│ 1-generate-vanity-onion.sh          │
+├─────────────────────────────────────┤
+│ 1. Install mkp224o dependencies     │
+│ 2. Build mkp224o vanity generator   │
+│ 3. Generate .onion starting with    │
+│    your prefix (TAKES HOURS)        │
+│ 4. Save keys to ~/oblivai-onion-keys/│
+└─────────────────────────────────────┘
+```
+
+#### Script 2: Deployment
+```
+┌─────────────────────────────────────┐
+│ 2-deploy-onion-site.sh              │
+├─────────────────────────────────────┤
+│ 1. Install Tor and nginx            │
+│ 2. Copy keys to Tor directory       │
+│ 3. Configure Tor hidden service     │
+│ 4. Build OBLIVAI (npm run build)    │
+│ 5. Configure nginx                  │
+│ 6. Start services → Site goes live  │
+└─────────────────────────────────────┘
+```
+
+### When to Use All-in-One Script
+
+Use `generate-vanity-onion.sh` (all-in-one) if:
+- You want to set it and forget it
+- You're okay waiting hours without interaction
+- You don't need to stop/restart generation
+
+### Script Options Summary
+
+| Script | Purpose | Time | Best For |
+|--------|---------|------|----------|
+| `1-generate-vanity-onion.sh` | Generate .onion only | 4-24 hours | Run overnight, then deploy later |
+| `2-deploy-onion-site.sh` | Deploy with existing keys | ~5 mins | After generation completes |
+| `generate-vanity-onion.sh` | Both generation + deployment | 4-24+ hours | Set and forget |
+
+**Recommendation:** Use Scripts 1 & 2 for better control and flexibility.
 
 ---
 
