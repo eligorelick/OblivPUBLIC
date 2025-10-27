@@ -1,0 +1,19 @@
+[Unit]
+Description=OBLIVAI Auto-Update Timer
+Requires=oblivai-update.service
+
+[Timer]
+# Run every 15 minutes
+OnCalendar=*:0/15
+
+# Also run 1 minute after boot
+OnBootSec=1min
+
+# Randomize start time by up to 2 minutes (reduces predictability)
+RandomizedDelaySec=2min
+
+# If system was off when timer should have run, run it on next boot
+Persistent=true
+
+[Install]
+WantedBy=timers.target

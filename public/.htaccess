@@ -1,0 +1,82 @@
+# Security Hardening - Apache Configuration
+<IfModule mod_headers.c>
+    # Remove server signature
+    Header unset Server
+    Header unset X-Powered-By
+
+    # Security Headers
+    Header always set X-Frame-Options "DENY"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set X-DNS-Prefetch-Control "off"
+    Header always set X-Permitted-Cross-Domain-Policies "none"
+    Header always set Cross-Origin-Embedder-Policy "require-corp"
+    Header always set Cross-Origin-Opener-Policy "same-origin"
+    Header always set Cross-Origin-Resource-Policy "same-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=(), serial=(), midi=(), magnetometer=(), gyroscope=(), accelerometer=(), ambient-light-sensor=(), autoplay=(), encrypted-media=(), fullscreen=(), picture-in-picture=()"
+
+    # Strict CSP
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://huggingface.co https://cdn-lfs.huggingface.co; worker-src 'self' blob:; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+
+    # HSTS
+    Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+
+    # No caching for security
+    Header always set Cache-Control "private, no-cache, no-store, must-revalidate, max-age=0"
+    Header always set Pragma "no-cache"
+    Header always set Expires "0"
+</IfModule>
+
+# Prevent access to sensitive files
+<Files "*.md">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+<Files "package.json">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+<Files "*.config.*">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# Block common attack patterns
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block SQL injection patterns
+    RewriteCond %{QUERY_STRING} (union|select|insert|update|delete|drop|create|alter|exec|script) [NC]
+    RewriteRule .* - [F,L]
+
+    # Block XSS patterns
+    RewriteCond %{QUERY_STRING} (<|%3C).*(script|javascript|vbscript|onload|onerror) [NC]
+    RewriteRule .* - [F,L]
+
+    # Block directory traversal
+    RewriteCond %{QUERY_STRING} \.\./\.\./ [NC]
+    RewriteRule .* - [F,L]
+
+    # Block null bytes
+    RewriteCond %{QUERY_STRING} \0 [NC]
+    RewriteRule .* - [F,L]
+</IfModule>
+
+# Prevent access to hidden files
+<Files ".*">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# Prevent access to backup files
+<Files "*~">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# Disable server signature
+ServerTokens Prod
+ServerSignature Off
