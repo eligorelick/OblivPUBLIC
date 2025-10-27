@@ -173,15 +173,35 @@ async function detectBackend(): Promise<'webgpu' | 'webgl' | 'wasm'> {
 }
 
 export async function detectHardware(): Promise<HardwareInfo> {
-  const memory = getSystemMemory();
-  const hardwareConcurrency = navigator.hardwareConcurrency || 4;
-  const deviceType = detectDeviceType();
-  const deviceInfo = detectDeviceInfo();
+  let memory = 4; // Safe default
+  let hardwareConcurrency = 4; // Safe default
+  let deviceType: 'mobile' | 'desktop' | 'unknown' = 'unknown';
+  let deviceInfo: DeviceInfo;
+  let backend: 'webgpu' | 'webgl' | 'wasm' = 'wasm'; // Safe default
 
-  // Detect best available backend
-  const backend = await detectBackend();
+  try {
+    memory = getSystemMemory();
+    hardwareConcurrency = navigator.hardwareConcurrency || 4;
+    deviceType = detectDeviceType();
+    deviceInfo = detectDeviceInfo();
 
-  // Hardware detection completed successfully
+    // Detect best available backend (may fail on some devices)
+    try {
+      backend = await detectBackend();
+    } catch (e) {
+      // Fallback to WASM if backend detection fails
+      backend = 'wasm';
+    }
+  } catch (error) {
+    // If hardware detection fails, use safe defaults
+    deviceInfo = {
+      type: 'desktop',
+      os: 'unknown',
+      browser: 'unknown',
+      isTouchDevice: false,
+      screenSize: 'large'
+    };
+  }
 
   // Default values
   const result: HardwareInfo = {
