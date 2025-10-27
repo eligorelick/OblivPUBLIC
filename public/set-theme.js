@@ -3,7 +3,7 @@
   try {
     // Strict privacy: never read or write browser storage.
     // Respect the user's system preference when possible.
-    var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? false : true;
+    var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? true : false;
 
     if (isDark) {
       document.documentElement.classList.add('dark');
