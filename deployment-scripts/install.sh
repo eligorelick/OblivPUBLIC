@@ -32,7 +32,8 @@ fi
 
 USERNAME="$1"
 APP_DIR="/var/www/oblivai"
-BRANCH="claude/analyze-site-improvements-011CUWyP7SQQuNdhToREi3Lc"
+BRANCH="main"
+REPO_URL="https://github.com/eligorelick/OblivPUBLIC.git"
 
 # Check if user exists
 if ! id "$USERNAME" &>/dev/null; then
@@ -79,7 +80,7 @@ if [ -d "$APP_DIR/.git" ]; then
     cd "$APP_DIR"
     sudo -u "$USERNAME" git pull origin "$BRANCH"
 else
-    sudo -u "$USERNAME" git clone https://github.com/eligorelick/Obliv_source.git "$APP_DIR"
+    sudo -u "$USERNAME" git clone "$REPO_URL" "$APP_DIR"
     cd "$APP_DIR"
     sudo -u "$USERNAME" git checkout "$BRANCH"
 fi

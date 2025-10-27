@@ -193,8 +193,21 @@ export class WebLLMService {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       this.loadingStatus = `Error loading model: ${errorMessage}`;
       onProgress?.(0, this.loadingStatus);
-      // Model loading error handled
-      throw new Error(`Failed to load model: ${errorMessage}`);
+
+      // Provide user-friendly error messages for common issues
+      let userFriendlyMessage = errorMessage;
+
+      if (errorMessage.toLowerCase().includes('webgpu') || errorMessage.toLowerCase().includes('gpu')) {
+        userFriendlyMessage = 'WebGPU not available. Your browser or device may not support GPU acceleration. Try Chrome/Edge or a different device.';
+      } else if (errorMessage.toLowerCase().includes('network') || errorMessage.toLowerCase().includes('fetch') || errorMessage.toLowerCase().includes('download')) {
+        userFriendlyMessage = 'Network error while downloading model. Check your internet connection and try again.';
+      } else if (errorMessage.toLowerCase().includes('memory') || errorMessage.toLowerCase().includes('oom')) {
+        userFriendlyMessage = 'Out of memory. This model is too large for your device. Please select a smaller model.';
+      } else if (errorMessage.toLowerCase().includes('abort') || errorMessage.toLowerCase().includes('cancel')) {
+        userFriendlyMessage = 'Model loading was cancelled.';
+      }
+
+      throw new Error(userFriendlyMessage);
     } finally {
       this.isLoading = false;
     }

@@ -22,6 +22,7 @@ const LoadingFallback = () => (
 
 function App() {
   const [currentView, setCurrentView] = useState<'landing' | 'model-select' | 'chat'>('landing');
+  const [isModelLoading, setIsModelLoading] = useState(false);
   const webllmService = useRef(new WebLLMService());
 
   const {
@@ -50,8 +51,10 @@ function App() {
   };
 
   const handleModelSelect = async (model: ModelConfig) => {
+    // Set loading state IMMEDIATELY to show loading bar
+    setIsModelLoading(true);
     setSelectedModel(model);
-    setModelLoadingProgress(0, 'Initializing model...');
+    setModelLoadingProgress(1, 'Initializing model...');
 
     try {
       // Set up progress callback that handles both number and InitProgressReport
@@ -67,9 +70,26 @@ function App() {
       // Once model is loaded, switch to chat view
       setCurrentView('chat');
       setModelLoadingProgress(100, 'Model loaded successfully');
+      setIsModelLoading(false);
     } catch (error) {
-      // Failed to load model
-      setModelLoadingProgress(0, `Failed to load model: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      // IMPORTANT: Show error to user (console may be disabled on mobile)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setModelLoadingProgress(0, `Failed: ${errorMessage}`);
+      setIsModelLoading(false);
+
+      // Show user-friendly error dialog
+      const userMessage = `Failed to load model: ${model.name}\n\n` +
+        `Error: ${errorMessage}\n\n` +
+        `Please try:\n` +
+        `• Select a smaller model (Tiny or Small category)\n` +
+        `• Refresh the page and try again\n` +
+        `• Use a different browser (Chrome/Edge recommended)\n` +
+        `• Ensure you have a stable internet connection`;
+
+      alert(userMessage);
+
+      // Log for debugging (will only show on localhost/.onion)
+      console.error('Model loading error:', error);
     }
   };
 
@@ -92,7 +112,7 @@ function App() {
           <div className="min-h-screen flex items-center justify-center p-6">
             <ModelSelector
               onModelSelect={handleModelSelect}
-              isLoading={webllmService.current.getLoadingStatus()}
+              isLoading={isModelLoading}
               loadingProgress={modelLoadingProgress}
               loadingStatus={modelLoadingStatus}
               // Provide back navigation
