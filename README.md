@@ -340,9 +340,29 @@ OBLIVAI is optimized for static hosting. Deploy to:
 
 OBLIVAI is fully compatible with Tor hidden services for maximum privacy and anonymity, with **automatic git updates**.
 
-**📖 Complete Guide:** See [DEPLOYMENT_ONION.md](DEPLOYMENT_ONION.md) for comprehensive setup instructions.
+**📖 Complete Guides:**
+- **[DEPLOYMENT_ONION.md](DEPLOYMENT_ONION.md)** - Debian/Ubuntu server setup with auto-updates
+- **[WHONIX_SETUP.md](WHONIX_SETUP.md)** - Whonix Workstation setup with vanity .onion generator
 
-**⚡ Quick Install (Recommended):**
+**🎯 Vanity .onion Address (Whonix):**
+
+Generate a custom .onion address starting with "OblivAi" on Qubes Whonix:
+
+```bash
+# Clone repository
+git clone https://github.com/eligorelick/OblivPUBLIC.git ~/oblivai
+cd ~/oblivai
+
+# STEP 1: Generate vanity .onion (may take hours)
+bash deployment-scripts/1-generate-vanity-onion.sh oblivai
+
+# STEP 2: Deploy site (after generation completes)
+bash deployment-scripts/2-deploy-onion-site.sh
+```
+
+See [WHONIX_SETUP.md](WHONIX_SETUP.md) for complete Whonix deployment guide.
+
+**⚡ Quick Install (Debian/Ubuntu):**
 
 For Debian/Ubuntu servers with automatic updates every 15 minutes:
 
