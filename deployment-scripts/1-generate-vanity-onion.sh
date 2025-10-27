@@ -210,10 +210,20 @@ generate_vanity_address() {
     # Run mkp224o
     print_header "GENERATION IN PROGRESS"
     echo ""
+    print_info "Using ${GREEN}$THREADS threads${NC} for generation"
     print_info "This may take a while... Press Ctrl+C to stop."
     echo ""
+    print_warning "NOTE: Output only appears when addresses are found!"
+    print_tip "For 7+ char prefixes, this could take hours before first output"
+    print_tip "In another terminal, run: ${CYAN}watch -n 5 'ls -l ~/oblivai-onion-keys/'${NC}"
+    echo ""
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo -e "${YELLOW}Searching for .onion addresses starting with: ${GREEN}${PREFIX}${NC}"
+    echo -e "${YELLOW}When found, addresses will appear below:${NC}"
+    echo ""
 
+    # Run mkp224o (output goes directly to terminal)
     "$MKPDIR/mkp224o" -d "$KEYSDIR" -t "$THREADS" -v "$PREFIX"
 
     # Find generated address
