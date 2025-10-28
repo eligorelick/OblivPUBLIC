@@ -10,15 +10,31 @@ export interface ModelConfig {
   category: 'tiny' | 'small' | 'medium' | 'large' | 'xl' | 'xxl' | 'xxxl' | 'coding';
 }
 
-// 24 AI models organized by capability and size
+// 35+ AI models organized by capability and size
 export const MODELS: Record<string, ModelConfig> = {
   // TINY TIER (500MB-1GB) - Ultra-fast, all devices
+  smollm2_360m: {
+    id: 'SmolLM2-360M-Instruct-q4f16_1-MLC',
+    name: 'SmolLM2 360M',
+    size: '350MB',
+    requirements: { ram: 2, gpu: 'optional' },
+    description: 'Extremely lightweight model for very old devices',
+    category: 'tiny'
+  },
   qwen2_0_5b: {
-    id: 'Qwen2-0.5B-Instruct-q4f16_1-MLC',
-    name: 'Qwen2 0.5B',
-    size: '945MB',
+    id: 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC',
+    name: 'Qwen2.5 0.5B',
+    size: '500MB',
     requirements: { ram: 4, gpu: 'optional' },
     description: 'Ultra-fast, works on all devices including old phones',
+    category: 'tiny'
+  },
+  qwen3_0_6b: {
+    id: 'Qwen3-0.6B-q4f16_1-MLC',
+    name: 'Qwen3 0.6B',
+    size: '600MB',
+    requirements: { ram: 4, gpu: 'optional' },
+    description: 'Latest ultra-compact Qwen model, excellent efficiency',
     category: 'tiny'
   },
   llama32_1b: {
@@ -29,19 +45,43 @@ export const MODELS: Record<string, ModelConfig> = {
     description: 'Flexible and fast, great for mobile devices',
     category: 'tiny'
   },
+  tinyllama_1b: {
+    id: 'TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC',
+    name: 'TinyLlama 1.1B',
+    size: '879MB',
+    requirements: { ram: 6, gpu: 'optional' },
+    description: 'Ultra-compact model for resource-constrained devices',
+    category: 'tiny'
+  },
 
   // SMALL TIER (1-2GB) - Fast, most devices
   qwen2_1_5b: {
-    id: 'Qwen2-1.5B-Instruct-q4f16_1-MLC',
-    name: 'Qwen2 1.5B',
+    id: 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC',
+    name: 'Qwen2.5 1.5B',
     size: '1.63GB',
     requirements: { ram: 8, gpu: 'recommended' },
     description: 'Recommended: Best balance of speed and quality',
     category: 'small'
   },
+  qwen3_1_7b: {
+    id: 'Qwen3-1.7B-q4f16_1-MLC',
+    name: 'Qwen3 1.7B',
+    size: '1.7GB',
+    requirements: { ram: 8, gpu: 'recommended' },
+    description: 'Latest Qwen3 model with improved performance',
+    category: 'small'
+  },
+  smollm2_1_7b: {
+    id: 'SmolLM2-1.7B-Instruct-q4f16_1-MLC',
+    name: 'SmolLM2 1.7B',
+    size: '1.1GB',
+    requirements: { ram: 8, gpu: 'recommended' },
+    description: 'Efficient small model with good performance',
+    category: 'small'
+  },
   gemma_2b: {
-    id: 'gemma-2b-it-q4f16_1-MLC',
-    name: 'Gemma 2B (Google)',
+    id: 'gemma-2-2b-it-q4f16_1-MLC',
+    name: 'Gemma 2-2B (Google)',
     size: '1.73GB',
     requirements: { ram: 8, gpu: 'recommended' },
     description: 'Google\'s efficient model, excellent for general tasks',
@@ -57,12 +97,28 @@ export const MODELS: Record<string, ModelConfig> = {
     description: 'High quality responses, good for complex conversations',
     category: 'medium'
   },
+  hermes_3b: {
+    id: 'Hermes-3-Llama-3.2-3B-q4f16_1-MLC',
+    name: 'Hermes 3 Llama 3B (Uncensored)',
+    size: '2.26GB',
+    requirements: { ram: 12, gpu: 'recommended' },
+    description: 'Uncensored 3B model with strong instruction following',
+    category: 'medium'
+  },
   stablelm_3b: {
     id: 'stablelm-2-zephyr-1_6b-q4f16_1-MLC',
     name: 'StableLM 2 Zephyr 1.6B',
     size: '1.89GB',
     requirements: { ram: 10, gpu: 'recommended' },
     description: 'Stability AI\'s efficient model, great for creative tasks',
+    category: 'medium'
+  },
+  qwen25_3b: {
+    id: 'Qwen2.5-3B-Instruct-q4f16_1-MLC',
+    name: 'Qwen2.5 3B',
+    size: '2.1GB',
+    requirements: { ram: 10, gpu: 'recommended' },
+    description: 'Latest Qwen model with excellent multilingual capabilities',
     category: 'medium'
   },
   redpajama_3b: {
@@ -91,12 +147,28 @@ export const MODELS: Record<string, ModelConfig> = {
     description: 'Popular powerful model, excellent for complex reasoning',
     category: 'large'
   },
-  wizardlm_7b: {
-    id: 'WizardLM-2-7B-q4f16_1-MLC',
-    name: 'WizardLM 2 7B',
-    size: '4.65GB',
+  mistral_7b_v0_3: {
+    id: 'Mistral-7B-Instruct-v0.3-q4f16_1-MLC',
+    name: 'Mistral 7B v0.3',
+    size: '4.37GB',
     requirements: { ram: 12, gpu: 'required' },
-    description: 'Advanced instruction-following with strong reasoning',
+    description: 'Latest Mistral model with improved performance',
+    category: 'large'
+  },
+  openhermes_7b: {
+    id: 'OpenHermes-2.5-Mistral-7B-q4f16_1-MLC',
+    name: 'OpenHermes 2.5 Mistral 7B',
+    size: '4.37GB',
+    requirements: { ram: 12, gpu: 'required' },
+    description: 'Fine-tuned Mistral with excellent instruction following',
+    category: 'large'
+  },
+  neuralhermes_7b: {
+    id: 'NeuralHermes-2.5-Mistral-7B-q4f16_1-MLC',
+    name: 'NeuralHermes 2.5 Mistral 7B',
+    size: '4.37GB',
+    requirements: { ram: 12, gpu: 'required' },
+    description: 'Specialized for complex reasoning and problem-solving',
     category: 'large'
   },
   deepseek_7b: {
@@ -118,11 +190,11 @@ export const MODELS: Record<string, ModelConfig> = {
     category: 'xl'
   },
   hermes_8b: {
-    id: 'Hermes-2-Pro-Llama-3-8B-q4f16_1-MLC',
-    name: 'Hermes 2 Pro Llama 8B (Uncensored)',
+    id: 'Hermes-3-Llama-3.1-8B-q4f16_1-MLC',
+    name: 'Hermes 3 Llama 8B (Uncensored)',
     size: '4.98GB',
     requirements: { ram: 16, gpu: 'required' },
-    description: 'Most powerful uncensored model, no content restrictions',
+    description: 'Latest uncensored model with advanced capabilities, no content restrictions',
     category: 'xl'
   },
   deepseek_8b: {
@@ -144,37 +216,21 @@ export const MODELS: Record<string, ModelConfig> = {
     category: 'xxl'
   },
 
-  // XXXL TIER (10GB+) - Ultra-large models, enthusiast/server hardware only
-  llama31_70b: {
-    id: 'Llama-3.1-70B-Instruct-q3f16_1-MLC',
-    name: 'Llama 3.1-70B',
-    size: '40GB',
-    requirements: { ram: 64, gpu: 'required' },
-    description: 'Meta\'s most powerful 70B model with exceptional reasoning',
+  // XXXL TIER (8GB+) - Very large models, high-end hardware only
+  phi_3_5_mini: {
+    id: 'Phi-3.5-mini-instruct-q4f16_1-MLC',
+    name: 'Phi-3.5 Mini',
+    size: '2.3GB',
+    requirements: { ram: 10, gpu: 'recommended' },
+    description: 'Microsoft\'s efficient model with strong reasoning capabilities',
     category: 'xxxl'
   },
-  llama3_70b: {
-    id: 'Llama-3-70B-Instruct-q3f16_1-MLC',
-    name: 'Llama 3-70B',
-    size: '40GB',
-    requirements: { ram: 64, gpu: 'required' },
-    description: 'Meta\'s flagship 70B model with cutting-edge capabilities',
-    category: 'xxxl'
-  },
-  llama2_13b: {
-    id: 'Llama-2-13b-chat-hf-q4f16_1-MLC',
-    name: 'Llama 2-13B Chat',
-    size: '7.2GB',
-    requirements: { ram: 20, gpu: 'required' },
-    description: 'Larger Llama 2 model for complex conversations',
-    category: 'xxxl'
-  },
-  gemma2_9b: {
-    id: 'gemma-2-9b-it-q4f16_1-MLC',
-    name: 'Gemma 2-9B',
-    size: '5.4GB',
-    requirements: { ram: 16, gpu: 'required' },
-    description: 'Google\'s advanced 9B model with strong reasoning',
+  qwen3_4b: {
+    id: 'Qwen3-4B-q4f16_1-MLC',
+    name: 'Qwen3 4B',
+    size: '2.5GB',
+    requirements: { ram: 12, gpu: 'required' },
+    description: 'Latest Qwen3 model with excellent performance',
     category: 'xxxl'
   },
   qwen25_7b: {
@@ -183,6 +239,22 @@ export const MODELS: Record<string, ModelConfig> = {
     size: '4.7GB',
     requirements: { ram: 12, gpu: 'required' },
     description: 'Latest Qwen model with excellent multilingual support',
+    category: 'xxxl'
+  },
+  qwen3_8b: {
+    id: 'Qwen3-8B-q4f16_1-MLC',
+    name: 'Qwen3 8B',
+    size: '5.0GB',
+    requirements: { ram: 16, gpu: 'required' },
+    description: 'Latest Qwen3 flagship model with cutting-edge capabilities',
+    category: 'xxxl'
+  },
+  gemma2_9b: {
+    id: 'gemma-2-9b-it-q4f16_1-MLC',
+    name: 'Gemma 2-9B',
+    size: '5.4GB',
+    requirements: { ram: 16, gpu: 'required' },
+    description: 'Google\'s advanced 9B model with strong reasoning',
     category: 'xxxl'
   },
 
