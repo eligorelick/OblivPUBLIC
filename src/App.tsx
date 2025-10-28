@@ -33,16 +33,21 @@ function App() {
     modelLoadingStatus
   } = useChatStore();
 
+  // Initialize security and service worker once on mount
   useEffect(() => {
     // Initialize security measures (now with IndexedDB model cache support)
     SecurityManager.getInstance();
 
     // Register service worker for offline support (PWA)
     registerServiceWorker();
+  }, []); // Run once on mount
 
-    // Set initial dark mode
+  // Handle dark mode toggle
+  useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
 
