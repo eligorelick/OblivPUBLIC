@@ -98,12 +98,45 @@ print_info "Creating Tor hidden service directory..."
 sudo mkdir -p "$TORDIR"
 
 print_info "Copying vanity .onion keys..."
-sudo cp -r "$ONION_DIR"/* "$TORDIR/" 2>/dev/null || true
+# Copy files one by one to ensure success
+if ! sudo cp "$ONION_DIR"/* "$TORDIR/" 2>/dev/null; then
+    # Try individual files
+    for file in "$ONION_DIR"/*; do
+        if [ -f "$file" ]; then
+            sudo cp "$file" "$TORDIR/" || {
+                print_error "Failed to copy $(basename "$file")"
+                exit 1
+            }
+        fi
+    done
+fi
+
+# Verify critical files were copied
+if [ ! -f "$TORDIR/hs_ed25519_secret_key" ]; then
+    print_error "Secret key not copied! Keys are missing."
+    exit 1
+fi
+
+if [ ! -f "$TORDIR/hs_ed25519_public_key" ]; then
+    print_error "Public key not copied! Keys are missing."
+    exit 1
+fi
+
+print_success "Keys copied successfully"
 
 print_info "Setting permissions..."
-sudo chown -R debian-tor:debian-tor "$TORDIR"
-sudo chmod 700 "$TORDIR"
-sudo find "$TORDIR" -type f -exec chmod 600 {} \; 2>/dev/null || true
+sudo chown -R debian-tor:debian-tor "$TORDIR" || {
+    print_error "Failed to set ownership"
+    exit 1
+}
+sudo chmod 700 "$TORDIR" || {
+    print_error "Failed to set directory permissions"
+    exit 1
+}
+sudo find "$TORDIR" -type f -exec chmod 600 {} \; || {
+    print_error "Failed to set file permissions"
+    exit 1
+}
 
 print_info "Configuring torrc..."
 
@@ -151,22 +184,59 @@ sudo systemctl stop tor tor@default 2>/dev/null || true
 sudo systemctl enable oblivai-tor
 sudo systemctl start oblivai-tor
 
-# Wait for Tor to initialize
-sleep 5
+# Wait for Tor to initialize and bootstrap
+print_info "Waiting for Tor to bootstrap..."
+sleep 3
 
 # Verify Tor is running
-if sudo systemctl is-active oblivai-tor > /dev/null 2>&1; then
-    print_success "Tor hidden service running!"
-    ACTUAL_ONION=$(sudo cat "$TORDIR/hostname" 2>/dev/null || echo "")
-    if [ -n "$ACTUAL_ONION" ]; then
-        echo ""
-        echo -e "  ${GREEN}${ACTUAL_ONION}${NC}"
-        echo ""
-    fi
-else
-    print_error "Tor failed to start"
+if ! sudo systemctl is-active oblivai-tor > /dev/null 2>&1; then
+    print_error "Tor service failed to start"
     print_info "Checking logs..."
-    sudo journalctl -u oblivai-tor -n 20 --no-pager
+    sudo journalctl -u oblivai-tor -n 30 --no-pager
+    exit 1
+fi
+
+print_success "Tor service started"
+
+# Wait for Tor to create hostname file (can take 10-30 seconds)
+print_info "Waiting for hidden service to initialize..."
+WAIT_COUNT=0
+while [ ! -f "$TORDIR/hostname" ] && [ $WAIT_COUNT -lt 30 ]; do
+    sleep 1
+    WAIT_COUNT=$((WAIT_COUNT + 1))
+    echo -n "."
+done
+echo ""
+
+# Verify hostname file exists
+if [ ! -f "$TORDIR/hostname" ]; then
+    print_error "Hidden service hostname file not created after 30 seconds"
+    print_info "This usually means Tor failed to load the hidden service"
+    print_info "Checking Tor logs..."
+    sudo journalctl -u oblivai-tor -n 50 --no-pager
+    print_info "Checking directory permissions..."
+    sudo ls -la "$TORDIR/"
+    exit 1
+fi
+
+# Verify Tor bootstrapped successfully
+print_info "Checking Tor bootstrap status..."
+if sudo journalctl -u oblivai-tor --no-pager | grep -q "Bootstrapped 100%"; then
+    print_success "Tor bootstrapped successfully"
+else
+    print_warning "Tor may not have fully bootstrapped yet"
+    print_info "Recent Tor logs:"
+    sudo journalctl -u oblivai-tor -n 10 --no-pager | tail -5
+fi
+
+ACTUAL_ONION=$(sudo cat "$TORDIR/hostname" 2>/dev/null || echo "")
+if [ -n "$ACTUAL_ONION" ]; then
+    print_success "Tor hidden service running!"
+    echo ""
+    echo -e "  ${GREEN}${ACTUAL_ONION}${NC}"
+    echo ""
+else
+    print_error "Hostname file exists but is empty"
     exit 1
 fi
 
@@ -185,18 +255,46 @@ fi
 cd "$APPDIR"
 
 print_info "Installing Node.js dependencies..."
-npm install --quiet 2>&1 | grep -v "^npm WARN" || true
+if ! npm install 2>&1 | tee /tmp/npm-install.log | grep -v "^npm WARN EBADENGINE" | grep -v "^npm WARN"; then
+    print_error "npm install failed"
+    cat /tmp/npm-install.log
+    exit 1
+fi
+
+print_success "Dependencies installed"
 
 print_info "Building OBLIVAI for production..."
-npm run build
+if ! npm run build 2>&1 | tee /tmp/npm-build.log; then
+    print_error "Build failed"
+    cat /tmp/npm-build.log
+    exit 1
+fi
 
-# Verify build
-if [ ! -d "$APPDIR/dist" ] || [ -z "$(ls -A "$APPDIR/dist" 2>/dev/null)" ]; then
+# Verify build exists and has files
+if [ ! -d "$APPDIR/dist" ]; then
+    print_error "Build failed - dist/ directory not created"
+    exit 1
+fi
+
+if [ -z "$(ls -A "$APPDIR/dist" 2>/dev/null)" ]; then
     print_error "Build failed - dist/ directory is empty"
     exit 1
 fi
 
+# Verify critical files
+if [ ! -f "$APPDIR/dist/index.html" ]; then
+    print_error "Build failed - index.html not found"
+    exit 1
+fi
+
+# Check for JS bundles
+if ! ls "$APPDIR/dist"/assets/*.js > /dev/null 2>&1 && ! ls "$APPDIR/dist"/*.js > /dev/null 2>&1; then
+    print_error "Build failed - no JavaScript bundles found"
+    exit 1
+fi
+
 print_success "OBLIVAI built successfully"
+print_info "Build contains: $(du -sh "$APPDIR/dist" | cut -f1) of files"
 
 # =============================================================================
 # Step 5: Configure Nginx
@@ -282,13 +380,32 @@ sudo systemctl enable nginx > /dev/null 2>&1
 
 sleep 2
 
-# Test local access
-if curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080 | grep -q "200"; then
-    print_success "Nginx running and serving site"
+# Test local access with retries
+print_info "Testing local site access..."
+RETRY_COUNT=0
+HTTP_CODE="000"
+while [ "$HTTP_CODE" != "200" ] && [ $RETRY_COUNT -lt 5 ]; do
+    sleep 1
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080 2>/dev/null || echo "000")
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+done
+
+if [ "$HTTP_CODE" = "200" ]; then
+    print_success "Nginx running and serving site (HTTP 200)"
+
+    # Verify HTML content
+    if curl -s http://127.0.0.1:8080 2>/dev/null | grep -q "<!DOCTYPE html>"; then
+        print_success "HTML content verified"
+    else
+        print_warning "Site responds but may not be serving correct content"
+    fi
 else
-    print_warning "Nginx started but site may not be accessible"
+    print_error "Site not accessible (HTTP $HTTP_CODE)"
+    print_info "Checking nginx error log..."
+    sudo tail -20 /var/log/nginx/oblivai-error.log 2>/dev/null || echo "No error log"
     print_info "Checking nginx status..."
     sudo systemctl status nginx --no-pager -l | head -10
+    exit 1
 fi
 
 # =============================================================================
@@ -318,7 +435,17 @@ HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080 2>/dev/
 if [ "$HTTP_CODE" = "200" ]; then
     print_success "Local site access: Working (HTTP 200)"
 else
-    print_warning "Local site access: HTTP $HTTP_CODE"
+    print_error "Local site access: HTTP $HTTP_CODE"
+    print_info "Site is not accessible locally"
+    print_info "Check nginx logs: sudo tail -f /var/log/nginx/oblivai-error.log"
+fi
+
+# Verify hidden service is actually reachable
+print_info "Verifying hidden service configuration..."
+if [ -f "$TORDIR/hostname" ] && [ -f "$TORDIR/hs_ed25519_secret_key" ]; then
+    print_success "Hidden service files: Present"
+else
+    print_error "Hidden service files: Missing"
 fi
 
 # =============================================================================
