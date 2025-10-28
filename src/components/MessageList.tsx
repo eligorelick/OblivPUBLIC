@@ -27,7 +27,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isGenerating
   };
 
   const renderMarkdown = (content: string) => {
-    // Simple markdown rendering - in production, use a proper markdown library
+    // Simple markdown rendering - safe with double sanitization
     const sanitized = sanitizeMarkdown(content);
 
     // Convert markdown to HTML (basic conversion)
@@ -38,7 +38,10 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isGenerating
       .replace(/\*([^*]+)\*/g, '<em>$1</em>')
       .replace(/\n/g, '<br />');
 
-    return <div dangerouslySetInnerHTML={{ __html: html }} className="prose prose-invert max-w-none" />;
+    // Apply DOMPurify again after regex replacements for maximum security
+    const finalSanitized = sanitizeMarkdown(html);
+
+    return <div dangerouslySetInnerHTML={{ __html: finalSanitized }} className="prose prose-invert max-w-none" />;
   };
 
   return (

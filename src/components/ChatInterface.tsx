@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MessageList } from './MessageList';
 import { InputArea } from './InputArea';
 import { ChatHeader } from './ChatHeader';
@@ -6,6 +6,7 @@ import { sanitizeInput } from '../lib/security';
 import { useChatStore } from '../store/chat-store';
 import { WebLLMService } from '../lib/webllm-service';
 import type { ChatMessage } from '../lib/webllm-service';
+import { AlertCircle, X } from 'lucide-react';
 
 interface ChatInterfaceProps {
   webllmService: WebLLMService;
@@ -18,23 +19,24 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ webllmService, onB
     isGenerating,
     addMessage,
     setGenerating,
-    selectedModel
+    selectedModel,
+    clearMessages
   } = useChatStore();
   const systemInstruction = useChatStore(state => state.systemInstruction);
-  const inputFocusRef = useRef<boolean>(false);
+  const [showContextWarning, setShowContextWarning] = useState(true);
 
   // Auto-focus input when chat interface mounts
   useEffect(() => {
-    if (!inputFocusRef.current) {
-      // Small delay to ensure DOM is ready
-      setTimeout(() => {
-        const textarea = document.querySelector('textarea[aria-label="Message input"]') as HTMLTextAreaElement;
-        if (textarea) {
-          textarea.focus();
-        }
-      }, 100);
-      inputFocusRef.current = true;
-    }
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      const textarea = document.querySelector('textarea[aria-label="Message input"]') as HTMLTextAreaElement;
+      if (textarea) {
+        textarea.focus();
+      }
+    }, 100);
+
+    // Cleanup timeout to prevent memory leaks
+    return () => clearTimeout(timer);
   }, []);
 
   const handleSendMessage = async (content: string) => {
@@ -104,9 +106,42 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ webllmService, onB
     setGenerating(false);
   };
 
+  // Show context warning when there are 10+ messages
+  const shouldShowContextWarning = messages.length >= 10 && showContextWarning;
+
   return (
     <div className="flex flex-col h-screen bg-dark" role="main" aria-label="Chat interface">
       <ChatHeader onBack={onBack} />
+
+      {/* Context Warning Banner */}
+      {shouldShowContextWarning && (
+        <div className="bg-yellow-500/10 border-b border-yellow-500/30 px-4 py-3">
+          <div className="max-w-6xl mx-auto flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1 text-sm">
+              <p className="text-yellow-200 font-medium mb-1">
+                ⚠️ Long conversation detected - Context may affect responses
+              </p>
+              <p className="text-yellow-300/80 text-xs">
+                Large context windows can cause degraded responses on consumer GPUs.
+                <button
+                  onClick={clearMessages}
+                  className="ml-1 underline hover:text-yellow-200 font-medium"
+                >
+                  Clear chat history
+                </button> to start fresh, or continue if your hardware can handle it.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowContextWarning(false)}
+              className="text-yellow-400/60 hover:text-yellow-400 transition-colors"
+              aria-label="Dismiss warning"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="flex-1 overflow-hidden flex flex-col max-w-6xl mx-auto w-full px-2 sm:px-4">
         <MessageList messages={messages} isGenerating={isGenerating} />

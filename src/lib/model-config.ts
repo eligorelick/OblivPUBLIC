@@ -10,14 +10,14 @@ export interface ModelConfig {
   category: 'tiny' | 'small' | 'medium' | 'large' | 'xl' | 'xxl' | 'xxxl' | 'coding';
 }
 
-// 20 AI models organized by capability and size
+// 24 AI models organized by capability and size
 export const MODELS: Record<string, ModelConfig> = {
   // TINY TIER (500MB-1GB) - Ultra-fast, all devices
   qwen2_0_5b: {
     id: 'Qwen2-0.5B-Instruct-q4f16_1-MLC',
     name: 'Qwen2 0.5B',
     size: '945MB',
-    requirements: { ram: 2, gpu: 'optional' },
+    requirements: { ram: 4, gpu: 'optional' },
     description: 'Ultra-fast, works on all devices including old phones',
     category: 'tiny'
   },
@@ -25,7 +25,7 @@ export const MODELS: Record<string, ModelConfig> = {
     id: 'Llama-3.2-1B-Instruct-q4f16_1-MLC',
     name: 'Llama 3.2 1B',
     size: '879MB',
-    requirements: { ram: 4, gpu: 'optional' },
+    requirements: { ram: 6, gpu: 'optional' },
     description: 'Flexible and fast, great for mobile devices',
     category: 'tiny'
   },
@@ -35,7 +35,7 @@ export const MODELS: Record<string, ModelConfig> = {
     id: 'Qwen2-1.5B-Instruct-q4f16_1-MLC',
     name: 'Qwen2 1.5B',
     size: '1.63GB',
-    requirements: { ram: 4, gpu: 'recommended' },
+    requirements: { ram: 8, gpu: 'recommended' },
     description: 'Recommended: Best balance of speed and quality',
     category: 'small'
   },
@@ -43,7 +43,7 @@ export const MODELS: Record<string, ModelConfig> = {
     id: 'gemma-2b-it-q4f16_1-MLC',
     name: 'Gemma 2B (Google)',
     size: '1.73GB',
-    requirements: { ram: 4, gpu: 'recommended' },
+    requirements: { ram: 8, gpu: 'recommended' },
     description: 'Google\'s efficient model, excellent for general tasks',
     category: 'small'
   },
@@ -53,7 +53,7 @@ export const MODELS: Record<string, ModelConfig> = {
     id: 'Llama-3.2-3B-Instruct-q4f16_1-MLC',
     name: 'Llama 3.2 3B',
     size: '2.26GB',
-    requirements: { ram: 8, gpu: 'recommended' },
+    requirements: { ram: 12, gpu: 'recommended' },
     description: 'High quality responses, good for complex conversations',
     category: 'medium'
   },
@@ -61,7 +61,7 @@ export const MODELS: Record<string, ModelConfig> = {
     id: 'stablelm-2-zephyr-1_6b-q4f16_1-MLC',
     name: 'StableLM 2 Zephyr 1.6B',
     size: '1.89GB',
-    requirements: { ram: 6, gpu: 'recommended' },
+    requirements: { ram: 10, gpu: 'recommended' },
     description: 'Stability AI\'s efficient model, great for creative tasks',
     category: 'medium'
   },
@@ -69,7 +69,7 @@ export const MODELS: Record<string, ModelConfig> = {
     id: 'RedPajama-INCITE-Chat-3B-v1-q4f16_1-MLC',
     name: 'RedPajama 3B',
     size: '2.07GB',
-    requirements: { ram: 6, gpu: 'recommended' },
+    requirements: { ram: 10, gpu: 'recommended' },
     description: 'Open-source model trained on diverse data, versatile',
     category: 'medium'
   },
@@ -161,30 +161,62 @@ export const MODELS: Record<string, ModelConfig> = {
     description: 'Meta\'s flagship 70B model with cutting-edge capabilities',
     category: 'xxxl'
   },
+  llama2_13b: {
+    id: 'Llama-2-13b-chat-hf-q4f16_1-MLC',
+    name: 'Llama 2-13B Chat',
+    size: '7.2GB',
+    requirements: { ram: 20, gpu: 'required' },
+    description: 'Larger Llama 2 model for complex conversations',
+    category: 'xxxl'
+  },
+  gemma2_9b: {
+    id: 'gemma-2-9b-it-q4f16_1-MLC',
+    name: 'Gemma 2-9B',
+    size: '5.4GB',
+    requirements: { ram: 16, gpu: 'required' },
+    description: 'Google\'s advanced 9B model with strong reasoning',
+    category: 'xxxl'
+  },
+  qwen25_7b: {
+    id: 'Qwen2.5-7B-Instruct-q4f16_1-MLC',
+    name: 'Qwen2.5 7B',
+    size: '4.7GB',
+    requirements: { ram: 12, gpu: 'required' },
+    description: 'Latest Qwen model with excellent multilingual support',
+    category: 'xxxl'
+  },
 
   // CODING TIER - Specialized coding models optimized for software development
   qwen25_coder_7b: {
     id: 'Qwen2.5-Coder-7B-Instruct-q4f16_1-MLC',
-    name: 'Qwen2.5-Coder 7B',
+    name: 'Qwen2.5-Coder 7B (Largest)',
     size: '4.7GB',
-    requirements: { ram: 12, gpu: 'required' },
-    description: 'Powerful coding model specialized in programming tasks',
+    requirements: { ram: 16, gpu: 'required' },
+    description: 'Most powerful coding model - expert at programming, debugging, and code review',
     category: 'coding'
   },
   qwen25_coder_3b: {
     id: 'Qwen2.5-Coder-3B-Instruct-q4f16_1-MLC',
     name: 'Qwen2.5-Coder 3B',
     size: '2.1GB',
-    requirements: { ram: 8, gpu: 'recommended' },
-    description: 'Efficient coding model great for development tasks',
+    requirements: { ram: 12, gpu: 'recommended' },
+    description: 'Efficient coding model great for development tasks and refactoring',
     category: 'coding'
   },
   qwen25_coder_1_5b: {
     id: 'Qwen2.5-Coder-1.5B-Instruct-q4f16_1-MLC',
     name: 'Qwen2.5-Coder 1.5B',
     size: '1.2GB',
-    requirements: { ram: 6, gpu: 'recommended' },
-    description: 'Fast and efficient coding assistant for quick tasks',
+    requirements: { ram: 8, gpu: 'recommended' },
+    description: 'Fast coding assistant for quick tasks and code completion',
+    category: 'coding'
+  },
+  qwen25_coder_0_5b: {
+    id: 'Qwen2.5-Coder-0.5B-Instruct-q4f16_1-MLC',
+    name: 'Qwen2.5-Coder 0.5B (Mobile)',
+    size: '400MB',
+    requirements: { ram: 4, gpu: 'optional' },
+    description: 'Ultra-fast coding helper for mobile devices and simple coding tasks',
     category: 'coding'
   }
 };
@@ -194,11 +226,17 @@ export function getModelsByCategory(category: ModelConfig['category']): ModelCon
   return Object.values(MODELS).filter(model => model.category === category);
 }
 
+// Helper function to convert size string to MB for proper sorting
+function parseSizeToMB(size: string): number {
+  const num = parseFloat(size);
+  return size.includes('GB') ? num * 1024 : num;
+}
+
 // Get all models as array sorted by size
 export function getAllModelsSorted(): ModelConfig[] {
   return Object.values(MODELS).sort((a, b) => {
-    const sizeA = parseFloat(a.size);
-    const sizeB = parseFloat(b.size);
+    const sizeA = parseSizeToMB(a.size);
+    const sizeB = parseSizeToMB(b.size);
     return sizeA - sizeB;
   });
 }
