@@ -23,7 +23,8 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ onBack }) => {
     clearAllHistory,
     toggleDarkMode,
     setAutoDeleteChats,
-    exportChat
+    exportChat,
+    contextTokenCount
   } = useChatStore();
 
   const [showSettings, setShowSettings] = React.useState(false);
@@ -100,7 +101,12 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ onBack }) => {
                 <h1 className="text-lg sm:text-xl font-bold text-white">OBLIVAI</h1>
                 <p className="text-xs text-gray-400 truncate">
                   {selectedModel ? selectedModel.name : 'No model selected'} •{' '}
-                  <span className="hidden sm:inline">{messages.length} messages • </span>
+                  <span className="hidden sm:inline">{messages.length} msgs • </span>
+                  {contextTokenCount > 0 && (
+                    <span className={`${contextTokenCount > 3072 ? 'text-red-400' : contextTokenCount > 2048 ? 'text-yellow-400' : 'text-gray-400'}`}>
+                      {contextTokenCount} tokens •{' '}
+                    </span>
+                  )}
                   100% Private
                 </p>
               </div>

@@ -20,10 +20,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ webllmService, onB
     addMessage,
     setGenerating,
     selectedModel,
-    clearMessages
+    clearMessages,
+    contextTokenCount,
+    showContextWarning: storeShowContextWarning,
+    dismissContextWarning
   } = useChatStore();
   const systemInstruction = useChatStore(state => state.systemInstruction);
-  const [showContextWarning, setShowContextWarning] = useState(true);
+  const [localShowWarning, setLocalShowWarning] = useState(true);
 
   // Auto-focus input when chat interface mounts
   useEffect(() => {
@@ -58,7 +61,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ webllmService, onB
 
     try {
       // Prepare messages for the model
-      const contextMessages = messages.slice(-10); // Keep last 10 messages for context
+      // Limit context for consumer GPUs - prevents VRAM overload
+      // Keep fewer messages if context is getting large
+      const maxContextMessages = contextTokenCount > 2048 ? 6 : 10;
+      const contextMessages = messages.slice(-maxContextMessages);
       const allMessages = [...contextMessages, userMessage];
 
       // Generate response
@@ -106,8 +112,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ webllmService, onB
     setGenerating(false);
   };
 
-  // Show context warning when there are 10+ messages
-  const shouldShowContextWarning = messages.length >= 10 && showContextWarning;
+  // Show context warning based on token count
+  const shouldShowContextWarning = storeShowContextWarning && localShowWarning;
+  const contextPercentage = Math.min(100, Math.round((contextTokenCount / 4096) * 100));
+
+  // Determine warning severity
+  const isContextHigh = contextTokenCount > 2048; // Yellow warning
+  const isContextCritical = contextTokenCount > 3072; // Red warning
 
   return (
     <div className="flex flex-col h-screen bg-dark" role="main" aria-label="Chat interface">
@@ -115,26 +126,43 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ webllmService, onB
 
       {/* Context Warning Banner */}
       {shouldShowContextWarning && (
-        <div className="bg-yellow-500/10 border-b border-yellow-500/30 px-4 py-3">
+        <div className={`${isContextCritical ? 'bg-red-500/10 border-red-500/30' : 'bg-yellow-500/10 border-yellow-500/30'} border-b px-4 py-3`}>
           <div className="max-w-6xl mx-auto flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+            <AlertCircle className={`h-5 w-5 ${isContextCritical ? 'text-red-400' : 'text-yellow-400'} flex-shrink-0 mt-0.5`} />
             <div className="flex-1 text-sm">
-              <p className="text-yellow-200 font-medium mb-1">
-                ⚠️ Long conversation detected - Context may affect responses
+              <p className={`${isContextCritical ? 'text-red-200' : 'text-yellow-200'} font-medium mb-1`}>
+                {isContextCritical ? '🔴 Critical: Context too long!' : '⚠️ Long conversation detected'}
+                <span className="ml-2 text-xs opacity-80">
+                  (~{contextTokenCount.toLocaleString()} tokens, {contextPercentage}% of limit)
+                </span>
               </p>
-              <p className="text-yellow-300/80 text-xs">
-                Large context windows can cause degraded responses on consumer GPUs.
-                <button
-                  onClick={clearMessages}
-                  className="ml-1 underline hover:text-yellow-200 font-medium"
-                >
-                  Clear chat history
-                </button> to start fresh, or continue if your hardware can handle it.
+              <p className={`${isContextCritical ? 'text-red-300/80' : 'text-yellow-300/80'} text-xs`}>
+                {isContextCritical ? (
+                  <>
+                    <strong>Consumer GPUs struggle with long context.</strong> Responses may be slow, degraded, or cause crashes.
+                    <button
+                      onClick={() => { clearMessages(); setLocalShowWarning(false); }}
+                      className={`ml-1 underline ${isContextCritical ? 'hover:text-red-200' : 'hover:text-yellow-200'} font-semibold`}
+                    >
+                      Clear chat now
+                    </button> (recommended)
+                  </>
+                ) : (
+                  <>
+                    Large context uses more VRAM and may slow down responses on consumer GPUs (RTX 4050/3060/etc).
+                    <button
+                      onClick={() => { clearMessages(); setLocalShowWarning(false); }}
+                      className="ml-1 underline hover:text-yellow-200 font-medium"
+                    >
+                      Clear chat
+                    </button> to improve performance, or continue if your GPU can handle it.
+                  </>
+                )}
               </p>
             </div>
             <button
-              onClick={() => setShowContextWarning(false)}
-              className="text-yellow-400/60 hover:text-yellow-400 transition-colors"
+              onClick={() => { dismissContextWarning(); setLocalShowWarning(false); }}
+              className={`${isContextCritical ? 'text-red-400/60 hover:text-red-400' : 'text-yellow-400/60 hover:text-yellow-400'} transition-colors`}
               aria-label="Dismiss warning"
             >
               <X className="h-4 w-4" />

@@ -12,6 +12,8 @@ export interface ChatState {
   autoDeleteChats: boolean;
   systemInstruction: string;
   storageEnabled: boolean;
+  contextTokenCount: number;
+  showContextWarning: boolean;
 
   // Actions
   addMessage: (message: ChatMessage) => void;
@@ -26,6 +28,8 @@ export interface ChatState {
   enableStorage: () => void;
   disableStorage: () => void;
   exportChat: () => string;
+  updateContextTokenCount: (count: number) => void;
+  dismissContextWarning: () => void;
 }
 
 export const useChatStore = create<ChatState>()((set, get) => ({
@@ -38,15 +42,34 @@ export const useChatStore = create<ChatState>()((set, get) => ({
   autoDeleteChats: false,
   systemInstruction: '',
   storageEnabled: false,
+  contextTokenCount: 0,
+  showContextWarning: false,
 
   addMessage: (message: ChatMessage) => {
-    set((state) => ({
-      messages: [...state.messages, { ...message, timestamp: new Date() }]
-    }));
+    set((state) => {
+      const newMessages = [...state.messages, { ...message, timestamp: new Date() }];
+
+      // Estimate token count (rough: ~4 chars per token)
+      const totalChars = newMessages.reduce((sum, msg) => sum + msg.content.length, 0);
+      const estimatedTokens = Math.ceil(totalChars / 4);
+
+      // Show warning if context > 2048 tokens (consumer GPUs struggle with long context)
+      const showWarning = estimatedTokens > 2048;
+
+      return {
+        messages: newMessages,
+        contextTokenCount: estimatedTokens,
+        showContextWarning: showWarning
+      };
+    });
   },
 
   clearMessages: () => {
-    set({ messages: [] });
+    set({
+      messages: [],
+      contextTokenCount: 0,
+      showContextWarning: false
+    });
   },
 
   clearAllHistory: () => {
@@ -135,5 +158,16 @@ export const useChatStore = create<ChatState>()((set, get) => ({
     const header = `# OBLIVAI Chat Export\n\nExported: ${new Date().toISOString()}\nModel: ${state.selectedModel?.name || 'Unknown'}\n\n---\n\n`;
 
     return header + markdown;
+  },
+
+  updateContextTokenCount: (count: number) => {
+    set({
+      contextTokenCount: count,
+      showContextWarning: count > 2048
+    });
+  },
+
+  dismissContextWarning: () => {
+    set({ showContextWarning: false });
   }
 }));

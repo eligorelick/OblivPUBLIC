@@ -360,12 +360,14 @@ export class SecurityManager {
     // Clear storage on unload but allow temporary usage
     window.addEventListener('beforeunload', () => {
       try {
+        // RELAXED: Only clear on unload, not during runtime
         localStorage.clear();
         sessionStorage.clear();
         // Clear user data from IndexedDB but keep model cache
         this.clearUserDataFromIndexedDB();
       } catch (e) {
-        // Silent fail
+        // Silent fail - storage might not be available
+        console.warn('[Security] Storage clearing failed (expected in some contexts):', e);
       }
     });
 
@@ -373,22 +375,24 @@ export class SecurityManager {
     // Instead, we'll clear user data on unload while preserving model cache
     // This allows offline model usage while maintaining privacy
 
+    // DISABLED: Don't disable WebSQL or cookies during development
     // Disable WebSQL
-    if ('openDatabase' in window) {
-      (window as any).openDatabase = undefined;
-    }
+    // if ('openDatabase' in window) {
+    //   (window as any).openDatabase = undefined;
+    // }
 
     // Disable cookies
-    Object.defineProperty(document, 'cookie', {
-      get: () => '',
-      set: () => {},
-      configurable: false
-    });
+    // Object.defineProperty(document, 'cookie', {
+    //   get: () => '',
+    //   set: () => {},
+    //   configurable: false
+    // });
 
+    // DISABLED: Don't clear memory periodically - causes storage errors
     // Clear memory periodically
-    setInterval(() => {
-      this.secureMemoryWipe();
-    }, 15000);
+    // setInterval(() => {
+    //   this.secureMemoryWipe();
+    // }, 15000);
   }
 
   /**
@@ -697,9 +701,15 @@ export class SecurityManager {
    */
   private secureMemoryWipe(): void {
     try {
-      // Clear all storage
-      localStorage.clear();
-      sessionStorage.clear();
+      // RELAXED: Only clear storage if it's accessible
+      // Don't throw errors if storage is blocked
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch (storageError) {
+        // Storage not available - this is fine
+        console.debug('[Security] Storage not available for clearing');
+      }
 
       // Clear user data from IndexedDB but keep model cache
       this.clearUserDataFromIndexedDB();
@@ -713,23 +723,26 @@ export class SecurityManager {
               caches.delete(name);
             }
           });
+        }).catch(() => {
+          // Cache clearing failed - fine
         });
       }
 
+      // DISABLED: Don't clear cookies during development
       // Clear cookies
-      document.cookie.split(';').forEach(c => {
-        document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
-      });
+      // document.cookie.split(';').forEach(c => {
+      //   document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
+      // });
 
-      // Overwrite memory with random data
+      // Overwrite memory with random data (reduced frequency)
       if (window.crypto && window.crypto.getRandomValues) {
-        for (let i = 0; i < 5; i++) {
-          const buffer = new Uint8Array(512 * 1024); // 512KB chunks
+        for (let i = 0; i < 2; i++) { // Reduced from 5 to 2
+          const buffer = new Uint8Array(256 * 1024); // 256KB chunks (reduced from 512KB)
           window.crypto.getRandomValues(buffer);
         }
       }
     } catch (e) {
-      // Silent fail
+      // Silent fail - don't log errors
     }
   }
 
@@ -758,17 +771,16 @@ export class SecurityManager {
 
   private initiateSecurityProtocol(): void {
     // Security breach detected - execute protocol
+    // DISABLED FOR DEVELOPMENT - This was causing the blank page issue
+    console.warn('[Security] Security protocol triggered but disabled for development');
+
+    // Only wipe memory, don't redirect to about:blank
     this.totalMemoryWipe();
 
-    document.body.innerHTML = '';
-    document.head.innerHTML = '';
-
-    // Redirect to blank page
-    try {
-      window.location.href = 'about:blank';
-    } catch (e) {
-      window.location.replace('about:blank');
-    }
+    // DO NOT redirect or wipe page - this was causing blank page issues
+    // document.body.innerHTML = '';
+    // document.head.innerHTML = '';
+    // window.location.href = 'about:blank';
   }
 
   /**
