@@ -98,9 +98,16 @@ export class SecurityManager {
    */
   private deployAntiDebugging(): void {
     // Check if we're on localhost or .onion (don't trigger aggressive security)
+    // EXPANDED: Also allow any local IP addresses and development environments
     const isLocalOrOnion = window.location.hostname === 'localhost' ||
                            window.location.hostname === '127.0.0.1' ||
-                           window.location.hostname.endsWith('.onion');
+                           window.location.hostname.endsWith('.onion') ||
+                           window.location.hostname.startsWith('192.168.') ||
+                           window.location.hostname.startsWith('10.') ||
+                           window.location.hostname.startsWith('172.') ||
+                           window.location.port === '5173' || // Vite dev server
+                           window.location.port === '3000' || // Common dev port
+                           window.location.port === '4173'; // Vite preview
 
     // Multi-layer debugger detection (DISABLED on localhost/.onion to prevent false positives)
     const detectDebugger = () => {
@@ -475,7 +482,25 @@ export class SecurityManager {
         const isLocalRequest = urlObj.hostname.includes(window.location.hostname) ||
                               urlObj.hostname === 'localhost' ||
                               urlObj.hostname === '127.0.0.1' ||
-                              urlObj.hostname.endsWith('.onion');
+                              urlObj.hostname.endsWith('.onion') ||
+                              urlObj.hostname.startsWith('192.168.') ||
+                              urlObj.hostname.startsWith('10.') ||
+                              urlObj.hostname.startsWith('172.16.') ||
+                              urlObj.hostname.startsWith('172.17.') ||
+                              urlObj.hostname.startsWith('172.18.') ||
+                              urlObj.hostname.startsWith('172.19.') ||
+                              urlObj.hostname.startsWith('172.20.') ||
+                              urlObj.hostname.startsWith('172.21.') ||
+                              urlObj.hostname.startsWith('172.22.') ||
+                              urlObj.hostname.startsWith('172.23.') ||
+                              urlObj.hostname.startsWith('172.24.') ||
+                              urlObj.hostname.startsWith('172.25.') ||
+                              urlObj.hostname.startsWith('172.26.') ||
+                              urlObj.hostname.startsWith('172.27.') ||
+                              urlObj.hostname.startsWith('172.28.') ||
+                              urlObj.hostname.startsWith('172.29.') ||
+                              urlObj.hostname.startsWith('172.30.') ||
+                              urlObj.hostname.startsWith('172.31.');
 
         if (!isAllowed && !isLocalRequest) {
           // Log blocked request
@@ -515,9 +540,16 @@ export class SecurityManager {
 
   private deployForensicProtection(): void {
     // Check if we're on localhost or .onion
+    // EXPANDED: Also allow any local IP addresses and development environments
     const isLocalOrOnion = window.location.hostname === 'localhost' ||
                            window.location.hostname === '127.0.0.1' ||
-                           window.location.hostname.endsWith('.onion');
+                           window.location.hostname.endsWith('.onion') ||
+                           window.location.hostname.startsWith('192.168.') ||
+                           window.location.hostname.startsWith('10.') ||
+                           window.location.hostname.startsWith('172.') ||
+                           window.location.port === '5173' || // Vite dev server
+                           window.location.port === '3000' || // Common dev port
+                           window.location.port === '4173'; // Vite preview
 
     // Advanced DOM mutation monitoring
     const observer = new MutationObserver((mutations) => {
@@ -605,9 +637,16 @@ export class SecurityManager {
 
   private startSecurityMonitoring(): void {
     // Check if we're on localhost or .onion
+    // EXPANDED: Also allow any local IP addresses and development environments
     const isLocalOrOnion = window.location.hostname === 'localhost' ||
                            window.location.hostname === '127.0.0.1' ||
-                           window.location.hostname.endsWith('.onion');
+                           window.location.hostname.endsWith('.onion') ||
+                           window.location.hostname.startsWith('192.168.') ||
+                           window.location.hostname.startsWith('10.') ||
+                           window.location.hostname.startsWith('172.') ||
+                           window.location.port === '5173' || // Vite dev server
+                           window.location.port === '3000' || // Common dev port
+                           window.location.port === '4173'; // Vite preview
 
     // Monitor for iframe embedding (only on clearnet production)
     if (window.self !== window.top && !isLocalOrOnion) {
