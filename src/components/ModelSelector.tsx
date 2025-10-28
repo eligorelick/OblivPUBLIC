@@ -181,7 +181,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
 
       {/* Model Cards - Organized by Category */}
       <div className="space-y-8">
-        {['tiny', 'small', 'medium', 'large', 'xl', 'xxl'].map(category => {
+        {['tiny', 'small', 'medium', 'large', 'xl', 'xxl', 'xxxl', 'coding'].map(category => {
           const categoryModels = getModelsByCategory(category as ModelConfig['category']);
           if (categoryModels.length === 0) return null;
 
@@ -200,7 +200,9 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
             medium: 'Medium (2-4GB) - High quality, good devices',
             large: 'Large (4-6GB) - Very capable, powerful devices',
             xl: 'XL (5-8GB) - Extremely capable, high-end devices',
-            xxl: 'XXL (8GB+) - Maximum intelligence, enthusiast hardware'
+            xxl: 'XXL (8GB+) - Maximum intelligence, enthusiast hardware',
+            xxxl: 'XXXL (10GB+) - Ultra-large models, server-grade hardware',
+            coding: 'Coding Specialists - Expert programming and development'
           };
 
           return (
