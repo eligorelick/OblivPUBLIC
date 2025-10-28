@@ -129,9 +129,47 @@ export class WebLLMService {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
+    // CRITICAL: Check WebGPU availability for desktop GPUs (RTX 4050, etc.)
+    let hasWebGPU = false;
+    if (!isIOS && 'gpu' in navigator) {
+      try {
+        const adapter = await (navigator as any).gpu.requestAdapter();
+        if (adapter) {
+          hasWebGPU = true;
+          console.log('[WebLLM] ✓ WebGPU available - will use GPU acceleration');
+
+          // Get GPU info
+          try {
+            const info = await adapter.requestAdapterInfo?.();
+            console.log('[WebLLM] GPU detected:', info?.description || 'Unknown GPU');
+          } catch (e) {
+            // Fallback to WebGL detection
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl') as WebGLRenderingContext;
+            if (gl) {
+              const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+              if (debugInfo) {
+                const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                console.log('[WebLLM] GPU detected (via WebGL):', renderer);
+              }
+            }
+          }
+        } else {
+          console.warn('[WebLLM] ⚠️ WebGPU adapter not available - falling back to WebGL/CPU');
+        }
+      } catch (e) {
+        console.warn('[WebLLM] ⚠️ WebGPU not available:', e);
+        console.warn('[WebLLM] To enable GPU acceleration in Chrome:');
+        console.warn('[WebLLM] 1. Go to chrome://flags');
+        console.warn('[WebLLM] 2. Search for "WebGPU"');
+        console.warn('[WebLLM] 3. Enable "Unsafe WebGPU" flag');
+        console.warn('[WebLLM] 4. Restart browser');
+      }
+    }
+
     try {
       // Create the engine with privacy-focused configuration
-      this.loadingStatus = isIOS ? 'Initializing WebGL engine...' : 'Creating ML engine...';
+      this.loadingStatus = hasWebGPU ? 'Initializing WebGPU engine...' : (isIOS ? 'Initializing WebGL engine...' : 'Creating ML engine...');
       onProgress?.(5, this.loadingStatus);
 
       // Initialize with real-time progress tracking
@@ -145,7 +183,7 @@ export class WebLLMService {
             this.loadingProgress = progressPercent;
 
             // Dynamic status messages based on progress
-            const gpuType = isMobile ? 'GPU' : 'WebGPU';
+            const gpuType = hasWebGPU ? 'WebGPU (RTX GPU)' : (isMobile ? 'GPU' : 'WebGPU');
             if (progressPercent < 5) {
               this.loadingStatus = `Initializing ${gpuType}...`;
             } else if (progressPercent < 15) {
@@ -183,18 +221,25 @@ export class WebLLMService {
         }
       };
 
-      // Force WebGL backend on iOS/mobile devices
-      // This prevents the "WebGPU not available" error on mobile devices
+      // Configure backend based on device capabilities
       if (isMobile) {
         engineConfig.logLevel = 'INFO';
-        // Explicitly request WebGL backend for mobile devices
-        // WebLLM should use WebGL instead of trying WebGPU first
         console.log('[WebLLM] Mobile device detected, using WebGL backend');
+      } else if (hasWebGPU) {
+        // Desktop with WebGPU support (RTX 4050, etc.)
+        engineConfig.logLevel = 'INFO';
+        console.log('[WebLLM] ✓ Desktop GPU detected - using WebGPU for maximum performance');
+      } else {
+        // Desktop without WebGPU - show warning
+        engineConfig.logLevel = 'WARN';
+        console.warn('[WebLLM] ⚠️ WebGPU not available on desktop - performance will be limited');
+        console.warn('[WebLLM] ⚠️ Your RTX 4050 GPU is not being used!');
+        console.warn('[WebLLM] 💡 To fix: Enable WebGPU in chrome://flags');
       }
 
       this.engine = new webllm.MLCEngine(engineConfig);
 
-      this.loadingStatus = 'Starting model download...';
+      this.loadingStatus = hasWebGPU ? 'Starting GPU-accelerated download...' : 'Starting model download...';
       onProgress?.(10, this.loadingStatus);
 
       // Load the model with progress tracking
