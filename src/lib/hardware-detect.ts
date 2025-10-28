@@ -146,6 +146,9 @@ export function detectDeviceInfo(): DeviceInfo {
 async function detectBackend(): Promise<'webgpu' | 'webgl' | 'wasm'> {
   // Special handling for iOS - WebGPU is experimental
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  console.log('[Hardware] Detecting backend...', { isIOS, isMobile });
 
   // 1. Try WebGPU (best performance, newest)
   // Note: iOS 17+ supports WebGPU but it may be experimental
@@ -153,11 +156,14 @@ async function detectBackend(): Promise<'webgpu' | 'webgl' | 'wasm'> {
     try {
       const adapter = await (navigator as any).gpu.requestAdapter();
       if (adapter) {
+        console.log('[Hardware] WebGPU available');
         return 'webgpu';
       }
     } catch (e) {
-      // WebGPU not available
+      console.log('[Hardware] WebGPU not available:', e);
     }
+  } else if (isIOS) {
+    console.log('[Hardware] Skipping WebGPU detection on iOS (not supported)');
   }
 
   // 2. Try WebGL (good performance, wider compatibility)
@@ -167,13 +173,18 @@ async function detectBackend(): Promise<'webgpu' | 'webgl' | 'wasm'> {
     const gl = canvas.getContext('webgl2') || canvas.getContext('webgl') ||
                canvas.getContext('experimental-webgl');
     if (gl) {
+      const version = gl instanceof WebGL2RenderingContext ? 'WebGL2' : 'WebGL';
+      console.log(`[Hardware] ${version} available - using GPU acceleration`);
       return 'webgl';
+    } else {
+      console.log('[Hardware] WebGL context creation returned null');
     }
   } catch (e) {
-    // WebGL not available
+    console.log('[Hardware] WebGL not available:', e);
   }
 
   // 3. Fallback to WASM CPU (slowest, but most compatible)
+  console.warn('[Hardware] No GPU backend available, falling back to WASM (CPU-only). Performance will be limited.');
   return 'wasm';
 }
 
@@ -388,6 +399,19 @@ export async function detectHardware(): Promise<HardwareInfo> {
     // Budget devices
     result.recommendedModel = 'tiny'; // 0.5-1B models
   }
+
+  // Log final hardware detection results
+  console.log('[Hardware] Detection complete:', {
+    deviceType: deviceInfo.type,
+    os: deviceInfo.os,
+    browser: deviceInfo.browser,
+    memory: `${memory}GB`,
+    cores: hardwareConcurrency,
+    backend: backend,
+    hasWebGPU: result.hasWebGPU,
+    recommendedModel: result.recommendedModel,
+    gpu: result.gpuInfo?.name
+  });
 
   return result;
 }

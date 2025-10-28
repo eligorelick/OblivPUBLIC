@@ -47,8 +47,14 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
       return 'insufficient';
     }
 
-    if (model.requirements.gpu === 'required' && !hardware.hasWebGPU && hardware.backend === 'wasm') {
-      return 'insufficient';
+    // Only block models if we're on CPU-only (WASM) mode
+    // WebGL can run models with 'recommended' or 'optional' GPU requirements
+    // Only 'required' models need WebGPU or high-performance WebGL
+    if (hardware.backend === 'wasm') {
+      // On WASM (CPU-only), only allow models with 'optional' GPU requirement
+      if (model.requirements.gpu === 'recommended' || model.requirements.gpu === 'required') {
+        return 'insufficient';
+      }
     }
 
     if (model.category === hardware.recommendedModel) {
