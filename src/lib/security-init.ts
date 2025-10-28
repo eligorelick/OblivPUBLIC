@@ -646,9 +646,14 @@ export class SecurityManager {
     this.secureMemoryWipe();
 
     // Additional memory overwrite
+    // Web Crypto API limits getRandomValues to 65536 bytes (64KB) per call
+    // So we need to break larger buffers into 64KB chunks
     if (window.crypto && window.crypto.getRandomValues) {
-      for (let i = 0; i < 20; i++) {
-        const buffer = new Uint8Array(1024 * 1024); // 1MB chunks
+      const maxBytes = 65536; // 64KB - maximum allowed by Web Crypto API
+      const totalWipes = 20;
+
+      for (let i = 0; i < totalWipes; i++) {
+        const buffer = new Uint8Array(maxBytes); // 64KB chunks
         window.crypto.getRandomValues(buffer);
       }
     }
