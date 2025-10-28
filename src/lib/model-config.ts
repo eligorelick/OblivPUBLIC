@@ -134,12 +134,12 @@ export const MODELS: Record<string, ModelConfig> = {
     category: 'xl'
   },
 
-  // XXL TIER (8GB+) - Maximum intelligence, enthusiast hardware only
-  wizardlm_13b: {
-    id: 'WizardMath-13B-V1.0-q4f16_1-MLC',
-    name: 'WizardMath 13B',
-    size: '7.70GB',
-    requirements: { ram: 24, gpu: 'required' },
+  // XXL TIER (4-8GB) - Maximum intelligence, enthusiast hardware only
+  wizardmath_7b: {
+    id: 'WizardMath-7B-V1.1-q4f16_1-MLC',
+    name: 'WizardMath 7B',
+    size: '4.57GB',
+    requirements: { ram: 16, gpu: 'required' },
     description: 'Specialized in mathematics and complex problem-solving',
     category: 'xxl'
   }
