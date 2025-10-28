@@ -15,6 +15,7 @@
     <meta name="referrer" content="no-referrer" />
 
     <!-- Content Security Policy (Tor/.onion compatible - no HTTPS enforcement) -->
+    <!-- Note: frame-ancestors removed from meta tag (only works via HTTP headers) -->
     <meta http-equiv="Content-Security-Policy"
       content="default-src 'self';
                base-uri 'self';
@@ -33,8 +34,7 @@
                form-action 'none';
                object-src 'none';
                media-src 'self';
-               manifest-src 'self';
-               frame-ancestors 'none';" />
+               manifest-src 'self';" />
 
     <!-- Note: X-Frame-Options should be set in server configuration -->
     <!-- This is just a fallback -->
