@@ -125,8 +125,9 @@ export class WebLLMService {
     this.loadingStatus = 'Initializing model...';
     onProgress?.(this.loadingProgress, this.loadingStatus);
 
-    // Detect if we're on iOS (WebGPU may not be available)
+    // Detect if we're on iOS or mobile (WebGPU may not be available)
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
     try {
       // Create the engine with privacy-focused configuration
@@ -134,7 +135,7 @@ export class WebLLMService {
       onProgress?.(5, this.loadingStatus);
 
       // Initialize with real-time progress tracking
-      // Force WebGL on iOS since WebGPU is not available yet
+      // Force WebGL on iOS/mobile since WebGPU is not reliably available
       const engineConfig: any = {
         initProgressCallback: (report: any) => {
           // Update progress in real-time
@@ -144,7 +145,7 @@ export class WebLLMService {
             this.loadingProgress = progressPercent;
 
             // Dynamic status messages based on progress
-            const gpuType = isIOS ? 'GPU' : 'WebGPU';
+            const gpuType = isMobile ? 'GPU' : 'WebGPU';
             if (progressPercent < 5) {
               this.loadingStatus = `Initializing ${gpuType}...`;
             } else if (progressPercent < 15) {
@@ -182,11 +183,13 @@ export class WebLLMService {
         }
       };
 
-      // Force WebGL backend on iOS devices (WebGPU not supported yet)
-      // This prevents the "WebGPU not available" error on iPhones/iPads
-      if (isIOS) {
+      // Force WebGL backend on iOS/mobile devices
+      // This prevents the "WebGPU not available" error on mobile devices
+      if (isMobile) {
         engineConfig.logLevel = 'INFO';
-        // WebLLM will automatically fall back to WebGL if WebGPU is not available
+        // Explicitly request WebGL backend for mobile devices
+        // WebLLM should use WebGL instead of trying WebGPU first
+        console.log('[WebLLM] Mobile device detected, using WebGL backend');
       }
 
       this.engine = new webllm.MLCEngine(engineConfig);
@@ -205,6 +208,7 @@ export class WebLLMService {
       this.currentModel = modelConfig.id;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[WebLLM] Model loading failed:', errorMessage, error);
       this.loadingStatus = `Error loading model: ${errorMessage}`;
       onProgress?.(0, this.loadingStatus);
 
@@ -212,16 +216,27 @@ export class WebLLMService {
       let userFriendlyMessage = errorMessage;
 
       if (errorMessage.toLowerCase().includes('webgpu') || errorMessage.toLowerCase().includes('gpu')) {
-        // Special message for iOS devices
-        if (isIOS) {
-          userFriendlyMessage = 'This model requires more resources than available on your iPhone/iPad. Please try a smaller model from the Tiny or Small category. iOS devices work best with Qwen2 0.5B or Llama 3.2 1B.';
+        // Special message for mobile devices
+        if (isMobile) {
+          userFriendlyMessage = 'GPU initialization failed on your mobile device. This usually means:\n\n' +
+            '1. Your browser needs WebGL enabled (check browser settings)\n' +
+            '2. Your device might be low on memory (close other apps)\n' +
+            '3. Try a smaller model (Qwen2 0.5B or Llama 3.2 1B work best on mobile)\n\n' +
+            'Check browser console for more details.';
         } else {
           userFriendlyMessage = 'GPU acceleration not available. Your browser or device may not support it. Try Chrome/Edge on desktop, or select a smaller model.';
         }
       } else if (errorMessage.toLowerCase().includes('network') || errorMessage.toLowerCase().includes('fetch') || errorMessage.toLowerCase().includes('download')) {
         userFriendlyMessage = 'Network error while downloading model. Check your internet connection and try again.';
       } else if (errorMessage.toLowerCase().includes('memory') || errorMessage.toLowerCase().includes('oom') || errorMessage.toLowerCase().includes('out of memory')) {
-        userFriendlyMessage = 'Out of memory. This model is too large for your device. Please select a smaller model from the Tiny category.';
+        if (isMobile) {
+          userFriendlyMessage = 'Out of memory on your mobile device. Try:\n\n' +
+            '1. Close other apps and browser tabs\n' +
+            '2. Restart your browser\n' +
+            '3. Use a smaller model (Qwen2 0.5B only needs 2GB RAM)';
+        } else {
+          userFriendlyMessage = 'Out of memory. This model is too large for your device. Please select a smaller model from the Tiny category.';
+        }
       } else if (errorMessage.toLowerCase().includes('abort') || errorMessage.toLowerCase().includes('cancel')) {
         userFriendlyMessage = 'Model loading was cancelled.';
       }
