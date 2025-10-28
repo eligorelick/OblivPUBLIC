@@ -91,11 +91,25 @@ export class SecurityManager {
    * - Console methods in production (not on localhost)
    * - Debugging keyboard shortcuts (F12, Ctrl+Shift+I/C/J, Ctrl+U)
    *
+   * NOTE: Aggressive anti-debugging (page wiping) is DISABLED on localhost and .onion
+   * to prevent false positives during development and Tor hosting.
+   *
    * @private
    */
   private deployAntiDebugging(): void {
-    // Multi-layer debugger detection
+    // Check if we're on localhost or .onion (don't trigger aggressive security)
+    const isLocalOrOnion = window.location.hostname === 'localhost' ||
+                           window.location.hostname === '127.0.0.1' ||
+                           window.location.hostname.endsWith('.onion');
+
+    // Multi-layer debugger detection (DISABLED on localhost/.onion to prevent false positives)
     const detectDebugger = () => {
+      if (isLocalOrOnion) {
+        // On localhost/.onion: just log warnings, don't wipe page
+        return;
+      }
+
+      // Only run aggressive detection on clearnet production
       // Timing-based detection
       const start = performance.now();
       // debugger; // Commented for production
@@ -139,14 +153,10 @@ export class SecurityManager {
       }
     };
 
-    // Run detection continuously
+    // Run detection continuously (but it's no-op on localhost/.onion)
     setInterval(detectDebugger, 300);
 
     // Disable console methods in production only (not on localhost or .onion)
-    const isLocalOrOnion = window.location.hostname === 'localhost' ||
-                           window.location.hostname === '127.0.0.1' ||
-                           window.location.hostname.endsWith('.onion');
-
     if (!isLocalOrOnion) {
       const noop = () => {};
       ['log', 'debug', 'info', 'warn', 'error', 'assert', 'dir', 'dirxml',
@@ -164,8 +174,13 @@ export class SecurityManager {
       configurable: false
     });
 
-    // Block all debugging keyboard shortcuts
+    // Block all debugging keyboard shortcuts (only on clearnet production)
     document.addEventListener('keydown', (e) => {
+      if (isLocalOrOnion) {
+        // Allow keyboard shortcuts on localhost/.onion for debugging
+        return;
+      }
+
       // F12, Ctrl+Shift+I/C/J, Ctrl+U
       if (e.key === 'F12' ||
           (e.ctrlKey && e.shiftKey && ['I', 'C', 'J'].includes(e.key)) ||
@@ -499,6 +514,11 @@ export class SecurityManager {
   }
 
   private deployForensicProtection(): void {
+    // Check if we're on localhost or .onion
+    const isLocalOrOnion = window.location.hostname === 'localhost' ||
+                           window.location.hostname === '127.0.0.1' ||
+                           window.location.hostname.endsWith('.onion');
+
     // Advanced DOM mutation monitoring
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
@@ -507,38 +527,66 @@ export class SecurityManager {
             if (node.nodeType === Node.ELEMENT_NODE) {
               const element = node as HTMLElement;
 
-              // Block dangerous elements
-              const dangerous = ['SCRIPT', 'IFRAME', 'OBJECT', 'EMBED', 'APPLET', 'LINK'];
-              if (dangerous.includes(element.tagName)) {
-                element.remove();
-                this.initiateSecurityProtocol();
+              // CRITICAL FIX: Don't block our own app scripts!
+              // Only block scripts from external origins or with inline code
+              if (element.tagName === 'SCRIPT') {
+                const scriptElement = element as HTMLScriptElement;
+                const src = scriptElement.src;
+
+                // Allow our own scripts (same-origin or module scripts from Vite)
+                if (!src || src.startsWith(window.location.origin) || src.startsWith('/')) {
+                  // This is our own script, allow it
+                  return;
+                }
+
+                // Only block external scripts on clearnet production
+                if (!isLocalOrOnion) {
+                  element.remove();
+                  this.initiateSecurityProtocol();
+                }
+                return;
               }
 
-              // Check for javascript: URLs
+              // Block other dangerous elements (but not SCRIPT or LINK which we need)
+              const dangerous = ['IFRAME', 'OBJECT', 'EMBED', 'APPLET'];
+              if (dangerous.includes(element.tagName)) {
+                if (!isLocalOrOnion) {
+                  element.remove();
+                  this.initiateSecurityProtocol();
+                }
+              }
+
+              // Check for javascript: URLs (only on clearnet production)
               if (element.outerHTML.includes('javascript:')) {
                 element.remove();
-                this.initiateSecurityProtocol();
+                if (!isLocalOrOnion) {
+                  this.initiateSecurityProtocol();
+                }
               }
 
-              // Check for event handlers
+              // Check for event handlers (only on clearnet production)
               const attributes = element.attributes;
               for (let i = 0; i < attributes.length; i++) {
                 if (attributes[i].name.startsWith('on')) {
                   element.removeAttribute(attributes[i].name);
-                  this.initiateSecurityProtocol();
+                  if (!isLocalOrOnion) {
+                    this.initiateSecurityProtocol();
+                  }
                 }
               }
             }
           });
         }
 
-        // Monitor attribute changes
+        // Monitor attribute changes (only on clearnet production)
         if (mutation.type === 'attributes') {
           const element = mutation.target as HTMLElement;
           if (mutation.attributeName?.startsWith('on') ||
               element.getAttribute(mutation.attributeName || '')?.includes('javascript:')) {
             element.removeAttribute(mutation.attributeName || '');
-            this.initiateSecurityProtocol();
+            if (!isLocalOrOnion) {
+              this.initiateSecurityProtocol();
+            }
           }
         }
       });
@@ -556,8 +604,13 @@ export class SecurityManager {
   }
 
   private startSecurityMonitoring(): void {
-    // Monitor for iframe embedding
-    if (window.self !== window.top) {
+    // Check if we're on localhost or .onion
+    const isLocalOrOnion = window.location.hostname === 'localhost' ||
+                           window.location.hostname === '127.0.0.1' ||
+                           window.location.hostname.endsWith('.onion');
+
+    // Monitor for iframe embedding (only on clearnet production)
+    if (window.self !== window.top && !isLocalOrOnion) {
       this.initiateSecurityProtocol();
     }
 
