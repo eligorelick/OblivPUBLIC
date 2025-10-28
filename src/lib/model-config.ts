@@ -10,7 +10,7 @@ export interface ModelConfig {
   category: 'tiny' | 'small' | 'medium' | 'large' | 'xl' | 'xxl' | 'xxxl' | 'coding';
 }
 
-// 22 AI models organized by capability and size
+// 20 AI models organized by capability and size
 export const MODELS: Record<string, ModelConfig> = {
   // TINY TIER (500MB-1GB) - Ultra-fast, all devices
   qwen2_0_5b: {
@@ -145,62 +145,46 @@ export const MODELS: Record<string, ModelConfig> = {
   },
 
   // XXXL TIER (10GB+) - Ultra-large models, enthusiast/server hardware only
-  mixtral_8x22b: {
-    id: 'Mixtral-8x22B-Instruct-v0.1-q4f16_1-MLC',
-    name: 'Mixtral-8×22B-Instruct',
-    size: '13.5GB',
-    requirements: { ram: 32, gpu: 'required' },
-    description: 'Mixture of Experts model with exceptional performance across all tasks',
-    category: 'xxxl'
-  },
   llama31_70b: {
-    id: 'Llama-3.1-70B-Instruct-q4f16_1-MLC',
-    name: 'Llama 3.1-70B-Instruct',
-    size: '42GB',
+    id: 'Llama-3.1-70B-Instruct-q3f16_1-MLC',
+    name: 'Llama 3.1-70B',
+    size: '40GB',
     requirements: { ram: 64, gpu: 'required' },
-    description: 'Meta\'s most powerful model with cutting-edge reasoning capabilities',
+    description: 'Meta\'s most powerful 70B model with exceptional reasoning',
     category: 'xxxl'
   },
-  qwen3_235b: {
-    id: 'Qwen3-235B-A22B-q4f16_1-MLC',
-    name: 'Qwen3-235B-A22B',
-    size: '140GB',
-    requirements: { ram: 192, gpu: 'required' },
-    description: 'Ultra-large model with exceptional intelligence, requires server-grade hardware',
-    category: 'xxxl'
-  },
-  deepseek_r1: {
-    id: 'DeepSeek-R1-q4f16_1-MLC',
-    name: 'DeepSeek-R1',
-    size: '45GB',
+  llama3_70b: {
+    id: 'Llama-3-70B-Instruct-q3f16_1-MLC',
+    name: 'Llama 3-70B',
+    size: '40GB',
     requirements: { ram: 64, gpu: 'required' },
-    description: 'Advanced reasoning model with state-of-the-art problem-solving capabilities',
-    category: 'xxxl'
-  },
-  bloom: {
-    id: 'bigscience-bloom-q4f16_1-MLC',
-    name: 'BLOOM',
-    size: '176GB',
-    requirements: { ram: 256, gpu: 'required' },
-    description: 'Multilingual mega-model from BigScience, supports 46+ languages',
+    description: 'Meta\'s flagship 70B model with cutting-edge capabilities',
     category: 'xxxl'
   },
 
   // CODING TIER - Specialized coding models optimized for software development
-  qwen25_coder_32b: {
-    id: 'Qwen2.5-Coder-32B-Instruct-q4f16_1-MLC',
-    name: 'Qwen2.5-Coder-32B-Instruct',
-    size: '19GB',
-    requirements: { ram: 40, gpu: 'required' },
-    description: 'Specialized coding model with expert-level programming capabilities',
+  qwen25_coder_7b: {
+    id: 'Qwen2.5-Coder-7B-Instruct-q4f16_1-MLC',
+    name: 'Qwen2.5-Coder 7B',
+    size: '4.7GB',
+    requirements: { ram: 12, gpu: 'required' },
+    description: 'Powerful coding model specialized in programming tasks',
     category: 'coding'
   },
-  qwen3_coder_480b: {
-    id: 'Qwen3-Coder-480B-A35B-Instruct-q4f16_1-MLC',
-    name: 'Qwen3-Coder-480B-A35B-Instruct',
-    size: '280GB',
-    requirements: { ram: 320, gpu: 'required' },
-    description: 'Ultimate coding model with unmatched programming expertise, requires data center hardware',
+  qwen25_coder_3b: {
+    id: 'Qwen2.5-Coder-3B-Instruct-q4f16_1-MLC',
+    name: 'Qwen2.5-Coder 3B',
+    size: '2.1GB',
+    requirements: { ram: 8, gpu: 'recommended' },
+    description: 'Efficient coding model great for development tasks',
+    category: 'coding'
+  },
+  qwen25_coder_1_5b: {
+    id: 'Qwen2.5-Coder-1.5B-Instruct-q4f16_1-MLC',
+    name: 'Qwen2.5-Coder 1.5B',
+    size: '1.2GB',
+    requirements: { ram: 6, gpu: 'recommended' },
+    description: 'Fast and efficient coding assistant for quick tasks',
     category: 'coding'
   }
 };
