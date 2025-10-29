@@ -2,6 +2,13 @@ import * as webllm from '@mlc-ai/web-llm';
 import type { ModelConfig } from './model-config';
 import { sanitizeInput } from './security';
 
+// Development-only logging
+const log = {
+  info: (...args: any[]) => import.meta.env.DEV && console.log(...args),
+  warn: (...args: any[]) => import.meta.env.DEV && console.warn(...args),
+  error: (...args: any[]) => console.error(...args) // Always log errors
+};
+
 /**
  * Represents a chat message in the conversation history.
  */
@@ -143,8 +150,8 @@ export class WebLLMService {
           try {
             const info = await adapter.requestAdapterInfo?.();
             gpuName = info?.description || 'Unknown GPU';
-            console.log('[WebLLM] ✓ WebGPU available - using GPU acceleration');
-            console.log('[WebLLM] GPU:', gpuName);
+            log.info('[WebLLM] ✓ WebGPU available - using GPU acceleration');
+            log.info('[WebLLM] GPU:', gpuName);
           } catch (e) {
             // Fallback to WebGL detection for GPU name
             const canvas = document.createElement('canvas');
@@ -154,17 +161,17 @@ export class WebLLMService {
               if (debugInfo) {
                 const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
                 gpuName = renderer || 'Unknown GPU';
-                console.log('[WebLLM] GPU (via WebGL):', gpuName);
+                log.info('[WebLLM] GPU (via WebGL):', gpuName);
               }
             }
           }
         } else {
           // No WebGPU adapter - will use WebGL automatically
-          console.log('[WebLLM] WebGPU not available - using WebGL (still GPU accelerated)');
+          log.info('[WebLLM] WebGPU not available - using WebGL (still GPU accelerated)');
         }
       } catch (e) {
         // WebGPU error - will automatically fall back to WebGL
-        console.log('[WebLLM] WebGPU not enabled - using WebGL fallback (still works!)');
+        log.info('[WebLLM] WebGPU not enabled - using WebGL fallback (still works!)');
       }
     }
 
@@ -178,11 +185,11 @@ export class WebLLMService {
           if (debugInfo) {
             const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
             gpuName = renderer || 'Unknown GPU';
-            console.log('[WebLLM] Using WebGL with GPU:', gpuName);
+            log.info('[WebLLM] Using WebGL with GPU:', gpuName);
           }
         }
       } catch (e) {
-        console.log('[WebLLM] GPU detection failed - will use CPU (slower)');
+        log.info('[WebLLM] GPU detection failed - will use CPU (slower)');
       }
     }
 
@@ -244,12 +251,12 @@ export class WebLLMService {
       engineConfig.logLevel = 'INFO';
 
       if (hasWebGPU) {
-        console.log('[WebLLM] ✓ Ready - WebGPU enabled for maximum performance');
-        console.log('[WebLLM] Performance: ~50-150 tokens/sec on', gpuName);
+        log.info('[WebLLM] ✓ Ready - WebGPU enabled for maximum performance');
+        log.info('[WebLLM] Performance: ~50-150 tokens/sec on', gpuName);
       } else {
-        console.log('[WebLLM] ✓ Ready - Using WebGL/CPU fallback');
-        console.log('[WebLLM] Performance: ~5-20 tokens/sec (slower but works!)');
-        console.log('[WebLLM] 💡 Tip: For 10x faster performance, enable WebGPU in chrome://flags');
+        log.info('[WebLLM] ✓ Ready - Using WebGL/CPU fallback');
+        log.info('[WebLLM] Performance: ~5-20 tokens/sec (slower but works!)');
+        log.info('[WebLLM] 💡 Tip: For 10x faster performance, enable WebGPU in chrome://flags');
       }
 
       this.engine = new webllm.MLCEngine(engineConfig);
@@ -268,7 +275,7 @@ export class WebLLMService {
       this.currentModel = modelConfig.id;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('[WebLLM] Model loading failed:', errorMessage, error);
+      log.error('[WebLLM] Model loading failed:', errorMessage, error);
       this.loadingStatus = `Error loading model: ${errorMessage}`;
       onProgress?.(0, this.loadingStatus);
 

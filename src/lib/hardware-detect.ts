@@ -1,3 +1,10 @@
+// Development-only logging
+const log = {
+  info: (...args: any[]) => import.meta.env.DEV && console.log(...args),
+  warn: (...args: any[]) => import.meta.env.DEV && console.warn(...args),
+  error: (...args: any[]) => console.error(...args) // Always log errors
+};
+
 export interface DeviceInfo {
   type: 'mobile' | 'tablet' | 'desktop';
   os: 'ios' | 'android' | 'windows' | 'macos' | 'linux' | 'unknown';
@@ -148,7 +155,7 @@ async function detectBackend(): Promise<'webgpu' | 'webgl' | 'wasm'> {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  console.log('[Hardware] Detecting backend...', { isIOS, isMobile });
+  log.info('[Hardware] Detecting backend...', { isIOS, isMobile });
 
   // 1. Try WebGPU (best performance, newest)
   // Note: iOS 17+ supports WebGPU but it may be experimental
@@ -156,14 +163,14 @@ async function detectBackend(): Promise<'webgpu' | 'webgl' | 'wasm'> {
     try {
       const adapter = await (navigator as any).gpu.requestAdapter();
       if (adapter) {
-        console.log('[Hardware] WebGPU available');
+        log.info('[Hardware] WebGPU available');
         return 'webgpu';
       }
     } catch (e) {
-      console.log('[Hardware] WebGPU not available:', e);
+      log.info('[Hardware] WebGPU not available:', e);
     }
   } else if (isIOS) {
-    console.log('[Hardware] Skipping WebGPU detection on iOS (not supported)');
+    log.info('[Hardware] Skipping WebGPU detection on iOS (not supported)');
   }
 
   // 2. Try WebGL (good performance, wider compatibility)
@@ -174,17 +181,17 @@ async function detectBackend(): Promise<'webgpu' | 'webgl' | 'wasm'> {
                canvas.getContext('experimental-webgl');
     if (gl) {
       const version = gl instanceof WebGL2RenderingContext ? 'WebGL2' : 'WebGL';
-      console.log(`[Hardware] ${version} available - using GPU acceleration`);
+      log.info(`[Hardware] ${version} available - using GPU acceleration`);
       return 'webgl';
     } else {
-      console.log('[Hardware] WebGL context creation returned null');
+      log.info('[Hardware] WebGL context creation returned null');
     }
   } catch (e) {
-    console.log('[Hardware] WebGL not available:', e);
+    log.info('[Hardware] WebGL not available:', e);
   }
 
   // 3. Fallback to WASM CPU (slowest, but most compatible)
-  console.warn('[Hardware] No GPU backend available, falling back to WASM (CPU-only). Performance will be limited.');
+  log.warn('[Hardware] No GPU backend available, falling back to WASM (CPU-only). Performance will be limited.');
   return 'wasm';
 }
 
@@ -401,7 +408,7 @@ export async function detectHardware(): Promise<HardwareInfo> {
   }
 
   // Log final hardware detection results
-  console.log('[Hardware] Detection complete:', {
+  log.info('[Hardware] Detection complete:', {
     deviceType: deviceInfo.type,
     os: deviceInfo.os,
     browser: deviceInfo.browser,

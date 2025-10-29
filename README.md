@@ -31,7 +31,7 @@ Every conversation you have with OBLIVAI stays on your device. No data collectio
 
 ### AI Capabilities
 
-- **15 AI Models** organized in 6 performance tiers (500MB to 8GB+)
+- **33+ AI Models** organized in 8 performance tiers (350MB to 9GB+)
 - **Custom System Instructions** to personalize assistant behavior
 - **Hardware Detection** automatically recommends optimal models
 - **WebGPU/WebGL/WASM Fallbacks** for maximum device compatibility
@@ -48,34 +48,56 @@ Every conversation you have with OBLIVAI stays on your device. No data collectio
 - **Focus Management** for keyboard navigation
 - **Responsive Design** works on mobile, tablet, and desktop
 
-## Available Models
+## Available Models (33+ Total)
 
-### Tiny Tier (500MB-1GB) - Ultra-fast, all devices
-- **Qwen2 0.5B** (945MB) - Ultra-fast, works on old phones
+### Tiny Tier (350MB-1GB) - Ultra-fast, all devices
+- **SmolLM2 360M** (350MB) - Extremely lightweight, works on very old devices
+- **Qwen2.5 0.5B** (500MB) - Ultra-fast, minimal resource usage
+- **Qwen3 0.6B** (600MB) - Latest ultra-compact Qwen model
 - **Llama 3.2 1B** (879MB) - Flexible and fast, great for mobile
+- **TinyLlama 1.1B** (879MB) - Ultra-compact for resource-constrained devices
 
 ### Small Tier (1-2GB) - Fast, most devices
-- **Qwen2 1.5B** (1.63GB) - **Recommended**: Best balance of speed and quality
-- **Gemma 2B** (1.73GB) - Google's efficient model
+- **Qwen2.5 1.5B** (1.63GB) - **Recommended**: Best balance of speed and quality
+- **Qwen3 1.7B** (1.7GB) - Latest Qwen3 with improved performance
+- **SmolLM2 1.7B** (1.1GB) - Efficient small model with good performance
+- **Gemma 2-2B** (1.73GB) - Google's efficient model, excellent for general tasks
 
 ### Medium Tier (2-4GB) - High quality, good devices
-- **Llama 3.2 3B** (2.26GB) - High quality responses
+- **Llama 3.2 3B** (2.26GB) - High quality responses, complex conversations
+- **Hermes 3 Llama 3B** (2.26GB) - Uncensored, strong instruction following
 - **StableLM 2 Zephyr 1.6B** (1.89GB) - Great for creative tasks
+- **Qwen2.5 3B** (2.1GB) - Excellent multilingual capabilities
 - **RedPajama 3B** (2.07GB) - Versatile open-source model
 
 ### Large Tier (4-6GB) - Very capable, powerful devices
-- **Hermes 2 Pro 7B** (4.03GB) - Uncensored, excellent instruction following
+- **Hermes 2 Pro 7B** (4.03GB) - Advanced uncensored model
 - **Mistral 7B v0.2** (4.37GB) - Popular powerful model
-- **WizardLM 2 7B** (4.65GB) - Advanced instruction-following
-- **DeepSeek-R1 7B** (5.11GB) - Specialized reasoning model
+- **Mistral 7B v0.3** (4.37GB) - Latest Mistral with improved performance
+- **OpenHermes 2.5 Mistral 7B** (4.37GB) - Fine-tuned with excellent instruction following
+- **NeuralHermes 2.5 Mistral 7B** (4.37GB) - Specialized for complex reasoning
+- **DeepSeek-R1 7B** (5.11GB) - Chain-of-thought reasoning capabilities
 
 ### XL Tier (5-8GB) - Extremely capable, high-end devices
-- **Llama 3.1 8B** (4.60GB) - Meta's flagship model
-- **Hermes 2 Pro Llama 8B** (4.98GB) - Most powerful uncensored model
-- **DeepSeek-R1 8B** (5.00GB) - Top-tier reasoning model
+- **Llama 3.1 8B** (4.60GB) - Meta's flagship model, exceptional at all tasks
+- **Hermes 3 Llama 8B** (4.98GB) - Most powerful uncensored model, no content restrictions
+- **DeepSeek-R1 8B** (5.00GB) - Top-tier reasoning and problem-solving
 
-### XXL Tier (8GB+) - Maximum intelligence, enthusiast hardware
-- **WizardMath 13B** (7.70GB) - Specialized in mathematics and problem-solving
+### XXL Tier (4-8GB) - Mathematics specialist
+- **WizardMath 7B** (4.57GB) - Specialized in mathematics and complex problem-solving
+
+### XXXL Tier (2-6GB) - Advanced models
+- **Phi-3.5 Mini** (2.3GB) - Microsoft's efficient model with strong reasoning
+- **Qwen3 4B** (2.5GB) - Latest Qwen3 with excellent performance
+- **Qwen2.5 7B** (4.7GB) - Excellent multilingual support
+- **Qwen3 8B** (5.0GB) - Latest Qwen3 flagship model, cutting-edge capabilities
+- **Gemma 2-9B** (5.4GB) - Google's advanced 9B model with strong reasoning
+
+### Coding Tier (400MB-5GB) - Specialized for software development
+- **Qwen2.5-Coder 0.5B** (400MB) - Ultra-fast coding helper for mobile devices
+- **Qwen2.5-Coder 1.5B** (1.2GB) - Fast coding assistant for quick tasks
+- **Qwen2.5-Coder 3B** (2.1GB) - Efficient coding model for development and refactoring
+- **Qwen2.5-Coder 7B** (4.7GB) - Most powerful coding model, expert at programming and debugging
 
 ## Browser Compatibility
 
@@ -96,7 +118,7 @@ Every conversation you have with OBLIVAI stays on your device. No data collectio
 **No-JS Fallback:**
 If you visit OBLIVAI with JavaScript disabled, you'll see a comprehensive informational page that includes:
 - Full explanation of OBLIVAI's features and privacy guarantees
-- Complete list of all 15 AI models with descriptions
+- Complete list of all 33+ AI models with descriptions
 - System requirements and browser compatibility information
 - Instructions for enabling JavaScript in your browser
 - Links to source code and documentation
