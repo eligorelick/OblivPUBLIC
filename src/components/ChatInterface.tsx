@@ -116,9 +116,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ webllmService, onB
   const shouldShowContextWarning = storeShowContextWarning && localShowWarning;
   const contextPercentage = Math.min(100, Math.round((contextTokenCount / 4096) * 100));
 
-  // Determine warning severity
-  const isContextHigh = contextTokenCount > 2048; // Yellow warning
-  const isContextCritical = contextTokenCount > 3072; // Red warning
+  // Determine warning severity (critical at 75% of 4K limit)
+  const isContextCritical = contextTokenCount > 3072;
 
   return (
     <div className="flex flex-col h-screen bg-dark" role="main" aria-label="Chat interface">
