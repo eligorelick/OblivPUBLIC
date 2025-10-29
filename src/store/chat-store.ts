@@ -141,8 +141,10 @@ export const useChatStore = create<ChatState>()((set, get) => ({
     set({ systemInstruction: instruction });
   },
 
+  // Note: Storage is always disabled for privacy - these functions are no-ops
   enableStorage: () => {
-    set({ storageEnabled: false }); // Always keep storage disabled for privacy
+    // Intentionally does nothing - storage always disabled for privacy
+    set({ storageEnabled: false });
   },
 
   disableStorage: () => {

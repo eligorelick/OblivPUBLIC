@@ -34,8 +34,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartChat }) => {
     },
     {
       icon: Zap,
-      title: 'Three Model Sizes',
-      description: 'From lightweight to powerful'
+      title: '33+ AI Models',
+      description: '8 performance tiers from 350MB to 9GB+'
     }
   ];
 

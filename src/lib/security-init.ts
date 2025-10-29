@@ -374,25 +374,6 @@ export class SecurityManager {
     // DO NOT disable IndexedDB - WebLLM needs it for model caching
     // Instead, we'll clear user data on unload while preserving model cache
     // This allows offline model usage while maintaining privacy
-
-    // DISABLED: Don't disable WebSQL or cookies during development
-    // Disable WebSQL
-    // if ('openDatabase' in window) {
-    //   (window as any).openDatabase = undefined;
-    // }
-
-    // Disable cookies
-    // Object.defineProperty(document, 'cookie', {
-    //   get: () => '',
-    //   set: () => {},
-    //   configurable: false
-    // });
-
-    // DISABLED: Don't clear memory periodically - causes storage errors
-    // Clear memory periodically
-    // setInterval(() => {
-    //   this.secureMemoryWipe();
-    // }, 15000);
   }
 
   /**
@@ -634,9 +615,6 @@ export class SecurityManager {
       attributes: true,
       attributeOldValue: true
     });
-
-    // Continuous integrity checking (disabled for now to prevent false positives)
-    // }, 500);
   }
 
   private startSecurityMonitoring(): void {
@@ -663,19 +641,6 @@ export class SecurityManager {
         this.secureMemoryWipe();
       }
     });
-
-    // Monitor for screenshots (disabled to prevent performance issues)
-    // let lastTime = Date.now();
-    // const checkScreenshot = () => {
-    //   const currentTime = Date.now();
-    //   if (currentTime - lastTime > 100) {
-    //     // Possible screenshot attempt
-    //     this.secureMemoryWipe();
-    //   }
-    //   lastTime = currentTime;
-    //   requestAnimationFrame(checkScreenshot);
-    // };
-    // requestAnimationFrame(checkScreenshot);
 
     // Cleanup on unload
     ['beforeunload', 'unload', 'pagehide'].forEach(event => {
@@ -728,11 +693,6 @@ export class SecurityManager {
         });
       }
 
-      // DISABLED: Don't clear cookies during development
-      // Clear cookies
-      // document.cookie.split(';').forEach(c => {
-      //   document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
-      // });
 
       // Overwrite memory with random data (reduced frequency)
       if (window.crypto && window.crypto.getRandomValues) {
